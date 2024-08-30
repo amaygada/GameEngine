@@ -1,10 +1,13 @@
 #include "init.hpp"
 
+// Define the global staticShape variable
+Entity staticShape;
+
 void initSDL(void){
     int rendererFlags, windowFlags;
 
     // Naming the window
-    std::string windowName = "Hello SDL";
+    std::string windowName = "Static Shape Example";
 
     // Creating the window
     rendererFlags = SDL_RENDERER_ACCELERATED;
@@ -36,5 +39,8 @@ void initSDL(void){
         cout << "SDL_CreateRenderer Error: " << SDL_GetError() << endl;
         exit(1);
     }
+
+    // Initialize the static shape
+    staticShape = {100, 100, 100, 100, {255, 0, 0, 255}}; // Red square at (100, 100) with 100x100 size
 
 }

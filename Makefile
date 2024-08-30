@@ -2,22 +2,22 @@
 CXX = g++
 
 # Compiler Flags
-CXXFLAGS = -Wall -std=c++17 `sdl2-config --cflags`
+CXXFLAGS = -Wall -std=c++17 -I./src/include
 
 # Linker Flags (for SDL2)
-LDFLAGS = `sdl2-config --libs`
+LDFLAGS = -L./src/lib -lmingw32 -lSDL2main -lSDL2
 
 # Source files
 SRC = main.cpp \
       init.cpp \
       draw.cpp \
-	  struct.cpp \
+      struct.cpp
 
 # Object files
 OBJ = $(SRC:.cpp=.o)
 
 # Executable name
-EXEC = sdl_main
+EXEC = main
 
 # Default target
 all: $(EXEC)
