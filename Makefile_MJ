@@ -32,7 +32,7 @@ $(EXEC): $(OBJ)
 
 # Clean up object files and executable
 clean:
-	rm -f $(OBJ) $(EXEC)
+	del /F /Q $(OBJ) $(EXEC).exe
 
 # Phony targets
 .PHONY: all clean

@@ -1,7 +1,16 @@
 #include "main.hpp"
+#include "struct.hpp"
 #include <memory>
+#include <vector>
 
-int main(int argc, char *argv[]){
+int main(int argc, char *argv[]) {
+
+    // Initialize the static shape
+    SDL_Color shapeColor = {255, 0, 0, 255};  // Red color
+    Entity staticShape(50, 50, 100, 100, shapeColor);
+    std::vector<Entity> E;
+    E.push_back(staticShape);
+
     // Initialize SDL
     initSDL();
 
@@ -23,8 +32,8 @@ int main(int argc, char *argv[]){
             }
         }
 
-        // Prep the scene
-        prepareScene();
+        // Prepare the scene with the entity
+        prepareScene(E);
 
         // Present the scene
         presentScene();

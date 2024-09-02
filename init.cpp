@@ -1,9 +1,7 @@
 #include "init.hpp"
+#include <vector>
 
-// Define the global staticShape variable
-Entity staticShape;
-
-void initSDL(void){
+void initSDL(){
     int rendererFlags, windowFlags;
 
     // Naming the window
@@ -39,8 +37,5 @@ void initSDL(void){
         cout << "SDL_CreateRenderer Error: " << SDL_GetError() << endl;
         exit(1);
     }
-
-    // Initialize the static shape
-    staticShape = {100, 100, 100, 100, {255, 0, 0, 255}}; // Red square at (100, 100) with 100x100 size
 
 }
