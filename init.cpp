@@ -1,10 +1,11 @@
 #include "init.hpp"
+#include <vector>
 
-void initSDL(void){
+void initSDL(){
     int rendererFlags, windowFlags;
 
     // Naming the window
-    std::string windowName = "Hello SDL";
+    std::string windowName = "Static Shape Example";
 
     // Creating the window
     rendererFlags = SDL_RENDERER_ACCELERATED;

@@ -9,4 +9,4 @@ using namespace std;
 extern App *app;
 
 // function to initialize the SDL window and renderer
-void initSDL(void);
+void initSDL();
