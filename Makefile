@@ -11,7 +11,8 @@ LDFLAGS = -L./src/lib -lSDL2main -lSDL2
 SRC = main.cpp \
       init.cpp \
       draw.cpp \
-      struct.cpp
+      struct.cpp \
+	  input.cpp \
 
 # Object files
 OBJ = $(SRC:.cpp=.o)

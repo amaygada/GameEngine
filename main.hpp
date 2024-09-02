@@ -2,6 +2,7 @@
 #include "struct.hpp"
 #include "draw.hpp"
 #include "init.hpp"
+#include "input.hpp"
 #include <memory>
 
 // window context

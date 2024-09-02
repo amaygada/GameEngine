@@ -1,10 +1,32 @@
 #pragma once
 #include "struct.hpp"
+#include "defs.hpp"
+#include "input.hpp"
+
 #include <SDL2/SDL.h>
-#include <vector>     // Include the vector header
+#include <vector>
 
 // window context
 extern App *app;
+
+class ModularInputHandler; // Forward declaration due to circular dependency
+
+class Entity {
+public:
+    int x, y;           // Position
+    int w, h;           // Width and Height
+    SDL_Color color;    // Color of the object
+    ModularInputHandler* inputHandler;
+
+    // Default constructor
+    Entity();
+
+    // Constructor to initialize the entity
+    Entity(int x, int y, int w, int h, SDL_Color color);
+
+    // Method to draw the entity
+    void draw(SDL_Renderer *renderer);
+};
 
 // Prepare scene
 void prepareScene(std::vector<Entity> &E);

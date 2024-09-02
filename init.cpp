@@ -5,7 +5,7 @@ void initSDL(){
     int rendererFlags, windowFlags;
 
     // Naming the window
-    std::string windowName = "Static Shape Example";
+    std::string windowName = "HW1 Engine";
 
     // Creating the window
     rendererFlags = SDL_RENDERER_ACCELERATED;
