@@ -44,6 +44,12 @@ void prepareScene(std::vector<Entity> &E) {
     }
 }
 
+// Method to update the dimensions while rescaling the window screen size
+void Entity::updateDimensions(int newx, int newy, int neww, int newh) {
+    x = newx; y = newy;
+    w = neww; h = newh;
+}
+
 // Function to present the scene
 void presentScene(void) {
     SDL_RenderPresent(app->renderer);

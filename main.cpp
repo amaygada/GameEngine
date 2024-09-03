@@ -6,14 +6,14 @@ int main(int argc, char *argv[]) {
 
     // Initialize the static shape
     SDL_Color shapeColor = {255, 0, 0, 255};  // Red color
-    Entity shape1(50, 50, 100, 100, shapeColor);
+    Entity shape1(0, 0, 100, 100, shapeColor);
     shape1.inputHandler = new DefaultEntityInputHandler();
     shape1.physicsHandler = new DefaultGravityPhysicsHandler();
     std::vector<Entity> E;
     E.push_back(shape1);
 
     SDL_Color shapeColor2 = {0, 255, 0, 255};  // Green color
-    Entity shape2(200, SCREEN_HEIGHT - 100, 100, 100, shapeColor2);
+    Entity shape2(SCREEN_WIDTH-100, SCREEN_HEIGHT-100, 100, 100, shapeColor2);
     E.push_back(shape2);
 
     // Initialize SDL
@@ -22,16 +22,21 @@ int main(int argc, char *argv[]) {
     bool running = true;  // Variable to control the main loop
     double physicsTime = 0; // Variable to contain physics timer - temporary for now
 
+
+    int window_width, window_height;
+
     while (running) {
+
+        SDL_GetWindowSize(app->window, &window_width, &window_height);
         // Prepare the scene with the entities
         prepareScene(E);
+        cout << window_width << " " << window_height << endl;
 
         // Process input
         doInput();
 
         for (auto &object : E) {
             if (object.inputHandler != nullptr) object.inputHandler->handleInput(&object);
-
             if (object.physicsHandler != nullptr) object.physicsHandler->updatePhysics(&object, PHYS_GRAVITY_CONSTANT, &physicsTime);
         }
 
@@ -41,11 +46,11 @@ int main(int argc, char *argv[]) {
                 if (E[i].checkCollision(E[j])) {
                     std::cout << "Collision detected between Entity " << i << " and Entity " << j << std::endl;
 
-                    // helper functions/methods to react to collisions and map the Entity behaviour come here
+                    // ToDo: helper functions/methods to react to collisions and map the Entity behaviour come here
                 }
             }
         }
-
+        
         // Present the scene
         presentScene();
 

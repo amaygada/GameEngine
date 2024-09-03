@@ -10,7 +10,7 @@ void initSDL(){
     // Creating the window
     rendererFlags = SDL_RENDERER_ACCELERATED;
 
-    windowFlags = 0;
+    windowFlags = SDL_WINDOW_RESIZABLE;
 
     // handle unsuccessful initialization
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {

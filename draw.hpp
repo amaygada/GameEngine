@@ -33,9 +33,12 @@ public:
     // Method to get the bounding box of the entity
     SDL_Rect getBoundingBox() const;
 
+    
+    void updateDimensions(int newx, int newy, int neww, int newh); 
+
     // Method to check if this entity collides with another entity
     bool checkCollision(const Entity &other) const;
-    
+
 };
 
 // Prepare scene

@@ -5,7 +5,7 @@ CXX = g++
 CXXFLAGS = -Wall -std=c++17 -I./src/include
 
 # Linker Flags (for SDL2)
-LDFLAGS = -L./src/lib -lSDL2main -lSDL2
+LDFLAGS = -L./src/lib -lmingw32 -lSDL2main -lSDL2
 
 # Source files
 SRC = main.cpp \
@@ -34,7 +34,7 @@ $(EXEC): $(OBJ)
 
 # Clean up object files and executable
 clean:
-	rm -f $(OBJ) $(EXEC)
+	del /F /Q $(OBJ) $(EXEC).exe
 
 # Phony targets
 .PHONY: all clean
