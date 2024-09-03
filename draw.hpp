@@ -26,6 +26,13 @@ public:
 
     // Method to draw the entity
     void draw(SDL_Renderer *renderer);
+
+    // Method to get the bounding box of the entity
+    SDL_Rect getBoundingBox() const;
+
+    // Method to check if this entity collides with another entity
+    bool checkCollision(const Entity &other) const;
+    
 };
 
 // Prepare scene

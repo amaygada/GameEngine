@@ -18,6 +18,19 @@ void Entity::draw(SDL_Renderer *renderer) {
     SDL_RenderFillRect(renderer, &rect);
 }
 
+// To get the bounds of a rectangle
+SDL_Rect Entity::getBoundingBox() const {
+    SDL_Rect rect = {x, y, w, h};
+    return rect;
+}
+
+// Method to check if this entity collides with another entity
+bool Entity::checkCollision(const Entity &other) const {
+    SDL_Rect thisRect = getBoundingBox();
+    SDL_Rect otherRect = other.getBoundingBox();
+    return SDL_HasIntersection(&thisRect, &otherRect);
+}
+
 // Function to prepare the scene by clearing the screen and drawing an Entity
 void prepareScene(std::vector<Entity> &E) {
     SDL_SetRenderDrawColor(app->renderer, BACKGROUND_COLOR_R, BACKGROUND_COLOR_G, BACKGROUND_COLOR_B, BACKGROUND_COLOR_O);  // Background color
