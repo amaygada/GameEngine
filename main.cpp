@@ -5,12 +5,16 @@
 int main(int argc, char *argv[]) {
 
     // Initialize the static shape
-    SDL_Color shapeColor = {SCREEN_BACKGROUND};  // Red color
-    Entity staticShape(50, 50, 100, 100, shapeColor);
-    staticShape.inputHandler = new DefaultEntityInputHandler();
-    staticShape.physicsHandler = new DefaultGravityPhysicsHandler();
+    SDL_Color shapeColor = {255, 0, 0, 255};  // Red color
+    Entity shape1(50, 50, 100, 100, shapeColor);
+    shape1.inputHandler = new DefaultEntityInputHandler();
+    shape1.physicsHandler = new DefaultGravityPhysicsHandler();
     std::vector<Entity> E;
-    E.push_back(staticShape);
+    E.push_back(shape1);
+
+    SDL_Color shapeColor2 = {0, 255, 0, 255};  // Green color
+    Entity shape2(200, SCREEN_HEIGHT - 100, 100, 100, shapeColor2);
+    E.push_back(shape2);
 
     // Initialize SDL
     initSDL();
@@ -29,6 +33,17 @@ int main(int argc, char *argv[]) {
             if (object.inputHandler != nullptr) object.inputHandler->handleInput(&object);
 
             if (object.physicsHandler != nullptr) object.physicsHandler->updatePhysics(&object, PHYS_GRAVITY_CONSTANT, &physicsTime);
+        }
+
+        // Check for collisions between entities
+        for (size_t i = 0; i < E.size(); ++i) {
+            for (size_t j = i + 1; j < E.size(); ++j) {
+                if (E[i].checkCollision(E[j])) {
+                    std::cout << "Collision detected between Entity " << i << " and Entity " << j << std::endl;
+
+                    // helper functions/methods to react to collisions and map the Entity behaviour come here
+                }
+            }
         }
 
         // Present the scene
