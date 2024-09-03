@@ -13,6 +13,7 @@ SRC = main.cpp \
       draw.cpp \
       struct.cpp \
 	  input.cpp \
+	  physics.cpp \
 
 # Object files
 OBJ = $(SRC:.cpp=.o)

@@ -5,9 +5,10 @@
 int main(int argc, char *argv[]) {
 
     // Initialize the static shape
-    SDL_Color shapeColor = {255, 0, 0, 255};  // Red color
+    SDL_Color shapeColor = {SCREEN_BACKGROUND};  // Red color
     Entity staticShape(50, 50, 100, 100, shapeColor);
     staticShape.inputHandler = new DefaultEntityInputHandler();
+    staticShape.physicsHandler = new DefaultGravityPhysicsHandler();
     std::vector<Entity> E;
     E.push_back(staticShape);
 
@@ -15,6 +16,7 @@ int main(int argc, char *argv[]) {
     initSDL();
 
     bool running = true;  // Variable to control the main loop
+    double physicsTime = 0; // Variable to contain physics timer - temporary for now
 
     while (running) {
         // Prepare the scene with the entities
@@ -25,6 +27,8 @@ int main(int argc, char *argv[]) {
 
         for (auto &object : E) {
             if (object.inputHandler != nullptr) object.inputHandler->handleInput(&object);
+
+            if (object.physicsHandler != nullptr) object.physicsHandler->updatePhysics(&object, PHYS_GRAVITY_CONSTANT, &physicsTime);
         }
 
         // Present the scene
@@ -32,6 +36,8 @@ int main(int argc, char *argv[]) {
 
         // Insert 16ms delay for a budget frame limiter
         SDL_Delay(16);
+
+        physicsTime += GRAV_INCREMENT_TIMER;
     }
 
     // Cleanup and exit

@@ -2,14 +2,18 @@
 #include "struct.hpp"
 #include "defs.hpp"
 #include "input.hpp"
+#include "physics.hpp"
 
 #include <SDL2/SDL.h>
 #include <vector>
+
+#define SCREEN_BACKGROUND 255, 0, 0, 255
 
 // window context
 extern App *app;
 
 class ModularInputHandler; // Forward declaration due to circular dependency
+class ModularPhysicsHandler; // Forward declaration due to circular dependency
 
 class Entity {
 public:
@@ -17,6 +21,7 @@ public:
     int w, h;           // Width and Height
     SDL_Color color;    // Color of the object
     ModularInputHandler* inputHandler;
+    ModularPhysicsHandler *physicsHandler;
 
     // Default constructor
     Entity();
