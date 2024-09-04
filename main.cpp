@@ -2,6 +2,8 @@
 #include <memory>
 #include <vector>
 
+
+
 int main(int argc, char *argv[]) {
 
     // Initialize the controllable shape
@@ -18,16 +20,16 @@ int main(int argc, char *argv[]) {
     shape2.inputHandler = new DefaultEntityInputHandler();
     E.push_back(shape2);
 
-    // Initialize the pattern-following shape
-    SDL_Color shapeColor3 = {255, 255, 0, 255};  // Yellow color
-    Entity shape3(SCREEN_WIDTH / 5, SCREEN_HEIGHT - 150, 200, 50, shapeColor3);
-    std::vector<SDL_Rect> shape3Path = {};
-    shape3Path.push_back({SCREEN_WIDTH / 5, 150, 1, 1});
-    shape3Path.push_back({SCREEN_WIDTH / 3, 0, 1, 1});
-    shape3Path.push_back({0, 0, 1, 1});
-    shape3Path.push_back({SCREEN_WIDTH / 5, SCREEN_HEIGHT - 150, 1, 1});
-    shape3.patternHandler = new DefaultPatternHandler(shape3Path);
-    E.push_back(shape3);
+    // // Initialize the pattern-following shape
+    // SDL_Color shapeColor3 = {255, 255, 0, 255};  // Yellow color
+    // Entity shape3(SCREEN_WIDTH / 5, SCREEN_HEIGHT - 150, 200, 50, shapeColor3);
+    // std::vector<SDL_Rect> shape3Path = {};
+    // shape3Path.push_back({SCREEN_WIDTH / 5, 150, 1, 1});
+    // shape3Path.push_back({SCREEN_WIDTH / 3, 0, 1, 1});
+    // shape3Path.push_back({0, 0, 1, 1});
+    // shape3Path.push_back({SCREEN_WIDTH / 5, SCREEN_HEIGHT - 150, 1, 1});
+    // shape3.patternHandler = new DefaultPatternHandler(shape3Path);
+    // E.push_back(shape3);
 
     // Initialize SDL
     initSDL();
@@ -50,7 +52,7 @@ int main(int argc, char *argv[]) {
         for (auto &object : E) {
             if (object.inputHandler != nullptr) object.inputHandler->handleInput(&object);
             if (object.physicsHandler != nullptr) object.physicsHandler->updatePhysics(&object, PHYS_GRAVITY_CONSTANT, &physicsTime);
-            if (object.patternHandler != nullptr) object.patternHandler->moveToPath(&object, PATTERN_MOVEMENT_CONSTANT);
+            // if (object.patternHandler != nullptr) object.patternHandler->moveToPath(&object, PATTERN_MOVEMENT_CONSTANT);
         }
 
         // Check for collisions between entities

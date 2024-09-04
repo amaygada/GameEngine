@@ -12,6 +12,21 @@ void doInput(void)
     }else if (state[SDL_SCANCODE_T]){
         SDL_RenderSetLogicalSize(app->renderer, 0, 0);
     }
+
+    // in code because removing this breaks the program
+    SDL_Event event;
+    while (SDL_PollEvent(&event))
+    {
+        switch (event.type)
+        {
+        case SDL_QUIT:
+            exit(0);
+            break;
+
+        default:
+            break;
+        }
+    }
 }
 
 void DefaultEntityInputHandler::handleInput(Entity *entity) {
