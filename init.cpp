@@ -5,12 +5,12 @@ void initSDL(){
     int rendererFlags, windowFlags;
 
     // Naming the window
-    std::string windowName = "Static Shape Example";
+    std::string windowName = "HW1 Engine";
 
     // Creating the window
     rendererFlags = SDL_RENDERER_ACCELERATED;
 
-    windowFlags = 0;
+    windowFlags = SDL_WINDOW_RESIZABLE;
 
     // handle unsuccessful initialization
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -38,4 +38,8 @@ void initSDL(){
         exit(1);
     }
 
+}
+
+void getWindowSize(int *window_width, int *window_height){
+    SDL_GetWindowSize(app->window, window_width, window_height);
 }

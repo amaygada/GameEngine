@@ -10,3 +10,5 @@ extern App *app;
 
 // function to initialize the SDL window and renderer
 void initSDL();
+
+void getWindowSize(int *window_width, int *window_height);
