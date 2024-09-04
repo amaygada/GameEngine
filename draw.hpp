@@ -3,6 +3,7 @@
 #include "defs.hpp"
 #include "input.hpp"
 #include "physics.hpp"
+#include "movementPattern.hpp"
 
 #include <SDL2/SDL.h>
 #include <vector>
@@ -12,6 +13,7 @@ extern App *app;
 
 class ModularInputHandler; // Forward declaration due to circular dependency
 class ModularPhysicsHandler; // Forward declaration due to circular dependency
+class ModularPatternHandler; // Forward declaration due to circular dependency
 
 class Entity {
 public:
@@ -20,6 +22,7 @@ public:
     SDL_Color color;    // Color of the object
     ModularInputHandler* inputHandler;
     ModularPhysicsHandler *physicsHandler;
+    ModularPatternHandler *patternHandler;
 
     // Default constructor
     Entity();
