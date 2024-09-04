@@ -39,3 +39,7 @@ void initSDL(){
     }
 
 }
+
+void getWindowSize(int *window_width, int *window_height){
+    SDL_GetWindowSize(app->window, window_width, window_height);
+}

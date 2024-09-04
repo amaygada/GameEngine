@@ -9,3 +9,8 @@
 extern App *app;
 
 int main(int argc, char *argv[]);
+
+class MyEntityInputHandler : public ModularInputHandler{
+public:
+    void handleInput(Entity *entity) override;
+};
