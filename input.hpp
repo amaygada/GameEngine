@@ -1,6 +1,7 @@
 #pragma once
 #include "draw.hpp"
 #include <SDL2/SDL.h>
+using namespace std;
 
 void doInput(void);
 

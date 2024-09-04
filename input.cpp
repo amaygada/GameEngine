@@ -1,21 +1,16 @@
 #include "input.hpp"
+#include <iostream>
 
 void doInput(void)
 {
+    const Uint8 *state = SDL_GetKeyboardState(NULL);
 
-    SDL_Event event;
-
-    while (SDL_PollEvent(&event))
-    {
-        switch (event.type)
-        {
-        case SDL_QUIT:
-            exit(0);
-            break;
-
-        default:
-            break;
-        }
+    if (state[SDL_SCANCODE_ESCAPE]){
+        exit(0);
+    }else if (state[SDL_SCANCODE_T] && state[SDL_SCANCODE_LSHIFT]){
+        SDL_RenderSetLogicalSize(app->renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
+    }else if (state[SDL_SCANCODE_T]){
+        SDL_RenderSetLogicalSize(app->renderer, 0, 0);
     }
 }
 
@@ -26,24 +21,24 @@ void DefaultEntityInputHandler::handleInput(Entity *entity) {
     // If the 'W' key is pressed
     if (state[SDL_SCANCODE_W]) {
         // Move the entity up
-        entity->y -= 1;
+        if( entity->y > 0) entity->y -= 1;
     }
 
     // If the 'S' key is pressed
     if (state[SDL_SCANCODE_S]) {
         // Move the entity down
-        entity->y += 1;
+        if( entity->y < SCREEN_HEIGHT - entity->h) entity->y += 1;
     }
 
     // If the 'A' key is pressed
     if (state[SDL_SCANCODE_A]) {
         // Move the entity left
-        entity->x -= 1;
+        if( entity->x > 0) entity->x -= 1;
     }
 
     // If the 'D' key is pressed
     if (state[SDL_SCANCODE_D]) {
         // Move the entity right
-        entity->x += 1;
+        if( entity->x < SCREEN_WIDTH - entity->w) entity->x += 1;
     }
 }

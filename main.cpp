@@ -7,7 +7,7 @@ int main(int argc, char *argv[]) {
     // Initialize the controllable shape
     SDL_Color shapeColor = {255, 0, 0, 255};  // Red color
     Entity shape1(0, 0, 100, 100, shapeColor);
-    shape1.inputHandler = new DefaultEntityInputHandler();
+    // shape1.inputHandler = new DefaultEntityInputHandler();
     shape1.physicsHandler = new DefaultGravityPhysicsHandler();
     std::vector<Entity> E;
     E.push_back(shape1);
@@ -15,6 +15,7 @@ int main(int argc, char *argv[]) {
     // Initialize the static shape
     SDL_Color shapeColor2 = {0, 255, 0, 255};  // Green color
     Entity shape2(SCREEN_WIDTH-100, SCREEN_HEIGHT-100, 100, 100, shapeColor2);
+    shape2.inputHandler = new DefaultEntityInputHandler();
     E.push_back(shape2);
 
     // Initialize the pattern-following shape
@@ -39,9 +40,9 @@ int main(int argc, char *argv[]) {
     while (running) {
 
         SDL_GetWindowSize(app->window, &window_width, &window_height);
+
         // Prepare the scene with the entities
         prepareScene(E);
-        // cout << window_width << " " << window_height << endl;
 
         // Process input
         doInput();
