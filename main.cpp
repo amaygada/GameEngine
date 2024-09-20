@@ -4,6 +4,11 @@
 
 int main(int argc, char *argv[]) {
 
+    // if (argc == 0) {
+
+    // }
+
+
     // Global bector to hold all entities
     std::vector<Entity> E;
 
@@ -47,6 +52,12 @@ int main(int argc, char *argv[]) {
         renderer->prepareScene();
 
         inputSubsystem->doInput(E);
+
+        // send to server
+        // receive from server
+
+        // subscriber check
+
         physicsSubsystem->doPhysics(E);
         collisionSubsystem->doCollision(E);
         animationSubsystem->doAnimation(E);

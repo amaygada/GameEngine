@@ -5,7 +5,7 @@ CXX = g++
 CXXFLAGS = -Wall -std=c++17 -I./src/include
 
 # Linker Flags (for SDL2)
-LDFLAGS = -L./src/lib -lSDL2main -lSDL2
+LDFLAGS = -L./src/lib -lSDL2main -lSDL2 -lzmq
 
 SUBSYSTEM = ./src/subsystem
 UTILS = ./src/utils
