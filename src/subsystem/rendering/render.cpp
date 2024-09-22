@@ -40,10 +40,10 @@ void Renderer::prepareScene() {
 
 // Function to present the scene
 // attach timer here
-void Renderer::presentScene(std::vector<Entity> &E) {
+void Renderer::presentScene(std::vector<Entity *> &E) {
     // Draw the vector of entities passed as a parameter
-    for (auto &object : E) {
-        object.draw(app->renderer);
+    for (auto *object : E) {
+        object->draw(app->renderer);
     }
 
     SDL_RenderPresent(app->renderer);

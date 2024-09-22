@@ -4,10 +4,10 @@ AnimationSubsystem::AnimationSubsystem(Timeline *animationTimeline) {
     this->animationSubsystemTimeline = animationTimeline;
 }
 
-void AnimationSubsystem::doAnimation(std::vector<Entity> &E) {
-    for (Entity &entity : E) {
-        if (entity.patternHandler != nullptr) {
-            entity.patternHandler->moveToPath(&entity, 1);
+void AnimationSubsystem::doAnimation(std::vector<Entity *> &E) {
+    for (Entity *entity : E) {
+        if (entity->patternHandler != nullptr) {
+            entity->patternHandler->moveToPath(entity, 1);
         }
     }
 

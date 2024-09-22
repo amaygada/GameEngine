@@ -20,11 +20,17 @@ public:
     ModularPhysicsHandler *physicsHandler;
     ModularPatternHandler *patternHandler;
 
+    int attachedClientID;
+
     // Default constructor
     Entity();
 
     // Constructor to initialize the entity
     Entity(int x, int y, int w, int h, SDL_Color color);
+
+    void setID(int ID);
+
+    void setFields(Entity *entity);
 
     // Method to draw the entity
     void draw(SDL_Renderer *renderer);
@@ -35,6 +41,6 @@ public:
     void updateDimensions(int newx, int newy, int neww, int newh); 
 
     // Method to check if this entity collides with another entity
-    bool checkCollision(const Entity &other) const;
+    bool checkCollision(const Entity *other) const;
 
 };

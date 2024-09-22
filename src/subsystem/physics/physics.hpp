@@ -9,8 +9,8 @@ class PhysicsSubsystem{
     public:
         Timeline *physicsSubsystemTimeline;
         PhysicsSubsystem(Timeline *physicsTimeline);
-        void doPhysics(std::vector<Entity> &E);
-        virtual void customPhysics(std::vector<Entity> &E){};
+        void doPhysics(std::vector<Entity *> &E);
+        virtual void customPhysics(std::vector<Entity *> &E){};
 };
 
 

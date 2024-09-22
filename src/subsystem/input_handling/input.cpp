@@ -14,7 +14,7 @@ InputSubsystem::InputSubsystem(Timeline *inputSubsystemTimeline) {
     }
 }
 
-void InputSubsystem::doInput(std::vector<Entity> &E) {
+void InputSubsystem::doInput(std::vector<Entity *> &E) {
     const Uint8 *state = SDL_GetKeyboardState(NULL);
 
     if (state[SDL_SCANCODE_ESCAPE]){

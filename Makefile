@@ -20,6 +20,7 @@ SRC = main.cpp \
 	$(UTILS)/app.cpp \
 	$(UTILS)/entity.cpp \
 	$(UTILS)/timer.cpp \
+	$(UTILS)/serverClient.cpp \
 
 # Object files
 OBJ = $(SRC:.cpp=.o)
