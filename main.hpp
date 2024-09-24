@@ -8,6 +8,8 @@
 // #include "src/subsystem/animation/animation.hpp"
 #include "src/utils/timer.hpp"
 // #include "src/utils/serverClient.hpp"
+#include "src/utils/server.hpp"
+#include "src/utils/client.hpp"
 #include <memory>
 
 // window context
