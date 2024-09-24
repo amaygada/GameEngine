@@ -56,9 +56,9 @@ void Client::sendEntityUpdate() {
     zmq::recv_result_t result = entity_requester.recv(reply, zmq::recv_flags::none);
     if (result) {
         std::string reply_str(static_cast<char*>(reply.data()), reply.size());
-        std::cout << "Server reply: " << reply_str << std::endl;
+        //std::cout << "Server reply: " << reply_str << std::endl;
     } else {
-        std::cerr << "Failed to receive reply from server" << std::endl;
+        //std::cerr << "Failed to receive reply from server" << std::endl;
     }
 }
 
@@ -67,7 +67,7 @@ void Client::receiveEntityUpdates(std::vector<Entity>& entities) {
     zmq::message_t update;
     while (entity_subscriber.recv(update, zmq::recv_flags::dontwait)) {
         std::string entity_data(static_cast<char*>(update.data()), update.size());
-        std::cout << "Received entity update: " << entity_data << std::endl;
+        // std::cout << "Received entity update: " << entity_data << std::endl;
 
         // Parse the received data and update the entities vector
         size_t pos = 0;
