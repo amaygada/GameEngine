@@ -16,6 +16,10 @@ class AnimationSubsystem {
 // Abstract class for modular entity pattern handling
 class ModularPatternHandler {
     public:
+        Timeline *patternHandlerTimeline;
+        int64_t start_time = -1;
+        
+        ModularPatternHandler();
         virtual void moveToPath(Entity *entity, int factor) = 0;
         virtual ~ModularPatternHandler() = default;  
         std::vector<SDL_Rect> path;

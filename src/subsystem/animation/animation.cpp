@@ -7,11 +7,15 @@ AnimationSubsystem::AnimationSubsystem(Timeline *animationTimeline) {
 void AnimationSubsystem::doAnimation(std::vector<Entity> &E) {
     for (Entity &entity : E) {
         if (entity.patternHandler != nullptr) {
-            entity.patternHandler->moveToPath(&entity, 1);
+            entity.patternHandler->moveToPath(&entity, 5);
         }
     }
 
     this->customAnimation(E);
+}
+
+ModularPatternHandler::ModularPatternHandler() {
+    this->patternHandlerTimeline = new Timeline(gameTimeline, 1);
 }
 
 // Construct the pattern handler with the given path (pattern) to follow
@@ -23,9 +27,20 @@ DefaultPatternHandler::DefaultPatternHandler(std::vector<SDL_Rect> path) {
 
 // Move the entity towards its current target in the path
 void DefaultPatternHandler::moveToPath(Entity *entity, int factor) {
+    if (this->patternHandlerTimeline->isParentPaused()) return;
+
     if (path.size() == 0) {
         return;
     }
+
+    int64_t currentTime = patternHandlerTimeline->getTime();
+
+    if (this->start_time == -1) {
+        this->start_time = currentTime;
+    }
+
+    int timeDiff = int(currentTime - this->start_time);
+    this->start_time = currentTime;
 
     // Get the current target of the path
     SDL_Rect current;
@@ -58,16 +73,16 @@ void DefaultPatternHandler::moveToPath(Entity *entity, int factor) {
     int futureX = entityBounds.x;
     int futureY = entityBounds.y;
     if (xDirection > 0) {
-        futureX += factor;
+        futureX += timeDiff*factor;
     }
     else if (xDirection < 0) {
-        futureX -= factor;
+        futureX -= timeDiff*factor;
     }
     if (yDirection > 0) {
-        futureY += factor;
+        futureY += timeDiff*factor;
     }
     else if (yDirection < 0) {
-        futureY -= factor;
+        futureY -= timeDiff*factor;
     }
 
     entity->x = futureX;
