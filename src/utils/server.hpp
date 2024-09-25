@@ -11,7 +11,7 @@ private:
     zmq::context_t context;
     zmq::socket_t handshake_responder;  // For REQ-REP handshake
     zmq::socket_t entity_publisher;     // For broadcasting updated positions to clients
-    zmq::socket_t entity_responder;     // For responding to entities after receiving the data
+    zmq::socket_t pull_socket;     // For  pulling entity data from the clients
     std::vector<Entity> &entities;      // Reference to the main game loop's entities
     std::mutex entity_mutex;            // Mutex for synchronizing access to entities
 

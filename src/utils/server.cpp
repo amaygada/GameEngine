@@ -81,11 +81,14 @@ Server::Server(std::vector<Entity>& entities_ref) :
     context(1), 
     handshake_responder(context, ZMQ_REP), 
     entity_publisher(context, ZMQ_PUB),
-    entity_responder(context, ZMQ_REP),  
+    pull_socket(context, ZMQ_PULL),  
     entities(entities_ref)
     {
         // Bind for handshake (REQ-REP)
         handshake_responder.bind("tcp://*:5555");
+
+        // Bind for receiving updates from clients (PULL)
+        pull_socket.bind("tcp://*:5556");
 
         // Bind for broadcasting entity data (PUB-SUB)
         entity_publisher.bind("tcp://*:5557");
@@ -94,13 +97,10 @@ Server::Server(std::vector<Entity>& entities_ref) :
 
 void Server::handleClient(int client_id) {
 
-    // Bind for receiving entity updates, ZeroMQ will select an available port
-    entity_responder.bind("tcp://*:0"); 
-
     // Receive entity updates from this client
     zmq::message_t request;
     while (true) {
-        if (entity_responder.recv(request, zmq::recv_flags::dontwait)) {
+        if (pull_socket.recv(request, zmq::recv_flags::dontwait)) {
             std::string entity_data(static_cast<char*>(request.data()), request.size());
             //std::cout << "Received entity update from client " << client_id << ": " << entity_data << std::endl;
 
@@ -120,10 +120,10 @@ void Server::handleClient(int client_id) {
             }
 
             // Respond with acknowledgment
-            std::string reply = "Update received";
-            zmq::message_t reply_msg(reply.size());
-            memcpy(reply_msg.data(), reply.data(), reply.size());
-            entity_responder.send(reply_msg, zmq::send_flags::none);
+            // std::string reply = "Update received";
+            // zmq::message_t reply_msg(reply.size());
+            // memcpy(reply_msg.data(), reply.data(), reply.size());
+            // entity_responder.send(reply_msg, zmq::send_flags::none);
         }
     }
 }

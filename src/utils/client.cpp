@@ -5,7 +5,7 @@ Client::Client(int id, Entity &entity_ref) :
     context(1),
     handshake_requester(context, ZMQ_REQ),
     entity_subscriber(context, ZMQ_SUB),
-    entity_requester(context, ZMQ_REQ),  // REQ socket for sending entity updates
+    push_socket(context, ZMQ_PUSH),        // PUSH for sending updates
     client_id(id),
     entity(entity_ref)
 {
@@ -13,7 +13,7 @@ Client::Client(int id, Entity &entity_ref) :
     handshake_requester.connect("tcp://localhost:5555");
 
     // Connect to server for sending entity updates (REQ-REP)
-    entity_requester.connect("tcp://localhost:5556");
+    push_socket.connect("tcp://localhost:5556");
 
     // Connect for receiving entity updates (PUB-SUB)
     entity_subscriber.connect("tcp://localhost:5557");
@@ -48,18 +48,18 @@ void Client::sendEntityUpdate() {
     zmq::message_t message(entity_data.size());
     memcpy(message.data(), entity_data.data(), entity_data.size());
 
-    // Send request (entity update) to the server
-    entity_requester.send(message, zmq::send_flags::none);
+     // Send update to the server from the push socket
+    push_socket.send(message, zmq::send_flags::none);
 
     // Wait for server acknowledgment
-    zmq::message_t reply;
-    zmq::recv_result_t result = entity_requester.recv(reply, zmq::recv_flags::none);
-    if (result) {
-        std::string reply_str(static_cast<char*>(reply.data()), reply.size());
-        //std::cout << "Server reply: " << reply_str << std::endl;
-    } else {
-        //std::cerr << "Failed to receive reply from server" << std::endl;
-    }
+    // zmq::message_t reply;
+    // zmq::recv_result_t result = entity_requester.recv(reply, zmq::recv_flags::none);
+    // if (result) {
+    //     std::string reply_str(static_cast<char*>(reply.data()), reply.size());
+    //     //std::cout << "Server reply: " << reply_str << std::endl;
+    // } else {
+    //     //std::cerr << "Failed to receive reply from server" << std::endl;
+    // }
 }
 
 // Method to receive entity updates from the server
