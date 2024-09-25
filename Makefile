@@ -2,10 +2,10 @@
 CXX = g++
 
 # Compiler Flags
-CXXFLAGS = -Wall -std=c++17 -I./src/include
+CXXFLAGS = -Wall -std=c++17 -I./src/include $(shell sdl2-config --cflags)
 
 # Linker Flags (for SDL2)
-LDFLAGS = -L./src/lib -lSDL2main -lSDL2 -lzmq
+LDFLAGS = $(shell sdl2-config --libs) -lSDL2main -lSDL2 -lzmq
 
 SUBSYSTEM = ./src/subsystem
 UTILS = ./src/utils
@@ -20,6 +20,8 @@ SRC = main.cpp \
 	$(UTILS)/app.cpp \
 	$(UTILS)/entity.cpp \
 	$(UTILS)/timer.cpp \
+	$(UTILS)/server.cpp \
+	$(UTILS)/client.cpp \
 
 # Object files
 OBJ = $(SRC:.cpp=.o)

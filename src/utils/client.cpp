@@ -1,7 +1,7 @@
 #include "client.hpp"
 
 // Constructor definition
-Client::Client(Entity* entity_ref) : 
+Client::Client(Entity* &entity_ref) : 
     context(1),
     handshake_requester(context, ZMQ_REQ),
     entity_subscriber(context, ZMQ_SUB),
@@ -21,6 +21,8 @@ Client::Client(Entity* entity_ref) :
 
 // Method to perform handshake with the server
 void Client::performHandshake() {
+
+    std::cout << "Sending entity data: x=" << entity->x << ", y=" << entity->y << std::endl;
     // Send initial entity data (x and y coordinates) to the server
     std::string request_message = "Entity data: x=" + std::to_string(entity->x) + 
                                   ", y=" + std::to_string(entity->y);

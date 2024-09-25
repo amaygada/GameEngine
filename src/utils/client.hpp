@@ -17,7 +17,7 @@ private:
 
 public:
     // Constructor
-    Client(Entity* entity_ref);
+    Client(Entity* &entity_ref);
 
     // Perform handshake with the server
     void performHandshake();
