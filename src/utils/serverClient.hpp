@@ -55,3 +55,4 @@ class ServerClient {
         Entity *getEntityByUniqueID(int ID, std::vector<Entity *> *entities);
 
 };
+

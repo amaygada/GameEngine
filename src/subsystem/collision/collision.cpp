@@ -15,4 +15,3 @@ void CollisionSubsystem::doCollision(std::vector<Entity *> &E) {
 
     this->customCollision(E);
 }
-

@@ -73,3 +73,5 @@ void DefaultPatternHandler::moveToPath(Entity *entity, int factor) {
     entity->x = futureX;
     entity->y = futureY;
 }
+
+

@@ -699,3 +699,4 @@ void ServerClient::updateEntities(std::vector<Entity *> *allEntities, std::vecto
     }
 
 }
+

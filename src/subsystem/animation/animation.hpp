@@ -27,3 +27,5 @@ class DefaultPatternHandler : public ModularPatternHandler{
         void moveToPath(Entity *entity, int factor) override;
         DefaultPatternHandler(std::vector<SDL_Rect> path);
 };
+
+
