@@ -7,6 +7,7 @@
 #include <SDL2/SDL.h>
 #include <iostream>
 #include <vector>
+#include <unordered_map>
 
 using namespace std;
 
@@ -19,7 +20,7 @@ class Renderer {
         void init(string windowName);
         void getWindowSize(int *window_width, int *window_height);
         void prepareScene(void);
-        void presentScene(std::vector<Entity> &E);
+        void presentScene(const unordered_map<int, Entity*> &entityMap);
         void cleanup();
         // ~Renderer();
 };

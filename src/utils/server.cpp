@@ -77,18 +77,17 @@
 #include "server.hpp"
 
 // Constructor definition
-Server::Server(std::vector<Entity>& entities_ref) : 
+Server::Server() : 
     context(1), 
     handshake_responder(context, ZMQ_REP), 
     entity_publisher(context, ZMQ_PUB),
-    pull_socket(context, ZMQ_PULL),  
-    entities(entities_ref)
+    entity_responder(context, ZMQ_PULL)
     {
         // Bind for handshake (REQ-REP)
         handshake_responder.bind("tcp://*:5555");
 
         // Bind for receiving updates from clients (PULL)
-        pull_socket.bind("tcp://*:5556");
+        entity_responder.bind("tcp://*:5556");
 
         // Bind for broadcasting entity data (PUB-SUB)
         entity_publisher.bind("tcp://*:5557");
@@ -96,30 +95,38 @@ Server::Server(std::vector<Entity>& entities_ref) :
     }
 
 void Server::handleClient(int client_id) {
-
-    // Receive entity updates from this client
     zmq::message_t request;
+
     while (true) {
-        if (pull_socket.recv(request, zmq::recv_flags::dontwait)) {
-            std::string entity_data(static_cast<char*>(request.data()), request.size());
-            //std::cout << "Received entity update from client " << client_id << ": " << entity_data << std::endl;
+        {
+            // Lock mutex to protect access to entityMap
+            std::lock_guard<std::mutex> lock(entity_mutex);
 
-            // Parse the received data and update the entities vector
-            int id, x, y;
-            sscanf(entity_data.c_str(), "%d,%d,%d", &id, &x, &y);
+            // Receive entity update from this client
+            if (entity_responder.recv(request, zmq::recv_flags::dontwait)) {
+                std::string entity_data(static_cast<char*>(request.data()), request.size());
+                // std::cout << "Received entity update from client " << client_id << ": " << entity_data << std::endl;
 
-            {
-                // Lock mutex to protect access to entities vector
-                std::lock_guard<std::mutex> lock(entity_mutex);
-                if (id >= 0 && static_cast<std::size_t>(id) < entities.size()) {
-                    entities[id].x = x;
-                    entities[id].y = y;
+                // Parse the received data (we expect the data to be "client_id,x,y")
+                int received_id, x, y;
+                sscanf(entity_data.c_str(), "%d,%d,%d", &received_id, &x, &y);
+
+                // Check if the received client ID matches the current client_id
+                if (received_id == client_id) {
+                    // Update the entity in the entityMap
+                    if (entityMap.find(client_id) != entityMap.end()) {
+                        entityMap[client_id]->x = x;
+                        entityMap[client_id]->y = y;
+                        std::cout << "Updated entity for client " << client_id << " to position (" << x << ", " << y << ")" << std::endl;
+                    } else {
+                        std::cerr << "Entity not found for client " << client_id << std::endl;
+                    }
                 } else {
-                    std::cerr << "Invalid entity ID received from client " << client_id << ": " << id << std::endl;
+                    std::cerr << "Client ID mismatch: expected " << client_id << ", but received " << received_id << std::endl;
                 }
             }
 
-            // Respond with acknowledgment
+            // Optionally, send an acknowledgment (if required by your design)
             // std::string reply = "Update received";
             // zmq::message_t reply_msg(reply.size());
             // memcpy(reply_msg.data(), reply.data(), reply.size());
@@ -128,34 +135,62 @@ void Server::handleClient(int client_id) {
     }
 }
 
+void Server::broadcastEntityUpdates() {
+    std::string broadcast_message;
+
+    // Prepare updated entity data to broadcast (client_id, x, y for each entity)
+    {
+        std::lock_guard<std::mutex> lock(entity_mutex);
+        for (const auto pair : entityMap) {
+            int client_id = pair.first;
+            Entity* entity = pair.second;
+            broadcast_message += std::to_string(client_id) + "," + 
+                                 std::to_string(entity->x) + "," + 
+                                 std::to_string(entity->y) + ";";
+        }
+    }
+
+    // Send the broadcast message to all clients
+    zmq::message_t message(broadcast_message.size());
+    memcpy(message.data(), broadcast_message.data(), broadcast_message.size());
+    entity_publisher.send(message, zmq::send_flags::none);
+}
+
 void Server::run() {
-    int client_id = 0;
+    std::srand(std::time(nullptr));  // Seed for random client ID generation
     std::vector<std::thread> client_threads;
 
     while (true) {
-        std::cout<< "Debug inside while loop" << std::endl;
-        // Wait for new clients (this could be a new handshake request)
-        zmq::message_t request;
+            // Wait for new clients (this could be a new handshake request)
+            zmq::message_t request;
         if (handshake_responder.recv(request, zmq::recv_flags::none)) {
             std::string client_msg(static_cast<char*>(request.data()), request.size());
-            std::cout << "Handshake received from client " << client_id << ": " << client_msg << std::endl;
+            std::cout << "Received handshake request: " << client_msg << std::endl;
 
-            // Respond with an acknowledgment
-            std::string reply = "Handshake OK for client " + std::to_string(client_id);
+            // Parse entity data (you can improve this by adding error checks)
+            int x = 0, y = 0;
+            sscanf(client_msg.c_str(), "Entity data: x=%d, y=%d", &x, &y);
+            std::cout << "Client entity position: (" << x << ", " << y << ")" << std::endl;
+
+            // Assign a random client ID
+            int client_id = rand() % 1000;
+            std::string reply = "Handshake OK, assigned client ID: " + std::to_string(client_id);
+
+            // Store the entity data in the server's entityMap
+            entityMap[client_id] = new Entity(x, y, 50, 50, {255, 0, 0, 255});
+            std::cout << "Server stored entity for client ID " << client_id << std::endl;
+
+            // Respond with the assigned client ID
             zmq::message_t reply_msg(reply.size());
             memcpy(reply_msg.data(), reply.data(), reply.size());
             handshake_responder.send(reply_msg, zmq::send_flags::none);
 
-            // Create a new thread for the client, pass the correct client ID
+            // (Optional) Create a thread to handle this client, passing the client_id
             client_threads.push_back(std::thread(&Server::handleClient, this, client_id));
-
-            // Increment client_id safely after creating the thread
-            client_id++;
         }
 
         // Broadcast updated entity positions to all clients
         broadcastEntityUpdates();
-        //std::cout << "After bc" << client_id << std::endl;
     }
 
     // Join all client threads before exiting
@@ -166,21 +201,7 @@ void Server::run() {
     }
 }
 
-void Server::broadcastEntityUpdates() {
-    std::string broadcast_message;
-    std::cout << broadcast_message << std::endl;
-
-    // Prepare updated entity data to broadcast
-    {
-        std::lock_guard<std::mutex> lock(entity_mutex);
-        for (size_t i = 0; i < entities.size(); ++i) {
-            broadcast_message += std::to_string(i) + "," + 
-                                 std::to_string(entities[i].x) + "," + 
-                                 std::to_string(entities[i].y) + ";";
-        }
-    }
-
-    zmq::message_t message(broadcast_message.size());
-    memcpy(message.data(), broadcast_message.data(), broadcast_message.size());
-    entity_publisher.send(message, zmq::send_flags::none);
+// Getter for entity_map
+unordered_map<int, Entity*> Server::getEntityMap() {
+    return entityMap;
 }

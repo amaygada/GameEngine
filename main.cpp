@@ -2,27 +2,24 @@
 #include <memory>
 #include <vector>
 #include <thread>
+#include <map>
 
 // Function to create entities and add them to the entity vector
-void createEntities(std::vector<Entity>& E);
+void createEntities(std::vector<Entity*>& E);
 
 int main(int argc, char *argv[]) {
 
     bool isServer = (argc > 1 && std::string(argv[1]) == "server");
 
     // Global vector to hold all entities
-    std::vector<Entity> E;
-
-    // Call the function to create entities
-    createEntities(E);  
+    vector<Entity*> E;
 
     // Initialize either server or client
     Server* server = nullptr;
-    Client* client = nullptr;
 
     // Server setup - headless mode
     if (isServer) {
-        server = new Server(E);  // Initialize the server with the entity vector
+        server = new Server();  // Initialize the server with the entity vector
         std::cout << "Server started" << std::endl;
 
         server->run(); // Server runs in a loop handling multiple clients
@@ -32,11 +29,12 @@ int main(int argc, char *argv[]) {
         // Initialize the application (SDL subsystems, renderer, etc.)
         renderer->init("Game");
 
+        // Call the function to create entities
+        createEntities(E);  
+
         // Initialize the client
-        int client_id = atoi(argv[2]);  // Pass the client_id as a command-line argument
-        client = new Client(client_id, E[client_id]);
-        client->performHandshake(); // Performing a handshake with the server
-        std::cout << "Client " << client_id << " started, controlling entity " << client_id << "." << std::endl;
+        Client client(E[0]);
+        client.performHandshake(); // Performing a handshake with the server
 
         // Main game loop for client
         int64_t last_render_time = globalTimeline->getTime();
@@ -49,17 +47,17 @@ int main(int argc, char *argv[]) {
 
             renderer->prepareScene();
 
-            inputSubsystem->doInput(E);
+            //inputSubsystem->doInput(E);
 
             // Client-server communication
-            client->sendEntityUpdate();       // Client sends its entity update to the server
-            client->receiveEntityUpdates(E);  // Client receives entity updates from the server
+            client.sendEntityUpdate();       // Client sends its entity update to the server
+            client.receiveEntityUpdates();  // Client receives entity updates from the server
 
-            physicsSubsystem->doPhysics(E);
-            collisionSubsystem->doCollision(E);
-            animationSubsystem->doAnimation(E);
+            //physicsSubsystem->doPhysics(E);
+            //collisionSubsystem->doCollision(E);
+            //animationSubsystem->doAnimation(E);
 
-            renderer->presentScene(E);
+            renderer->presentScene(client.getEntityMap());
         }
 
         renderer->cleanup();
@@ -68,17 +66,17 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-void createEntities(std::vector<Entity>& E) {
+void createEntities(std::vector<Entity*>& E) {
     // Create entities for the game
     SDL_Color shapeColor5 = {0, 0, 255, 255};  // Green color
     Entity shape5(300, 300, 100, 100, shapeColor5);
     shape5.physicsHandler = new DefaultMovementPhysicsHandler(true);
-    E.push_back(shape5);
+    E.push_back(&shape5);
 
     SDL_Color shapeColor = {255, 0, 0, 255};  // Red color
     Entity shape1(1000, 0, 100, 500, shapeColor);
-    shape1.physicsHandler = new DefaultGravityPhysicsHandler(false);
-    E.push_back(shape1);
+    shape1.physicsHandler = new DefaultMovementPhysicsHandler(false);
+    E.push_back(&shape1);
 
     // Initialize pattern-following shape
     SDL_Color shapeColor3 = {255, 255, 0, 255};  // Yellow color
@@ -92,5 +90,5 @@ void createEntities(std::vector<Entity>& E) {
         {10, 10, 1, 1}
     };
     shape3.patternHandler = new DefaultPatternHandler(shape3Path);
-    E.push_back(shape3);
+    E.push_back(&shape3);
 }

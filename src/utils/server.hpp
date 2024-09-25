@@ -6,18 +6,22 @@
 #include "entity.hpp"
 #include <thread>
 #include <mutex>
+#include <cstdlib>
+#include <ctime>
+#include <map>
+
 class Server {
 private:
     zmq::context_t context;
     zmq::socket_t handshake_responder;  // For REQ-REP handshake
     zmq::socket_t entity_publisher;     // For broadcasting updated positions to clients
-    zmq::socket_t pull_socket;     // For  pulling entity data from the clients
-    std::vector<Entity> &entities;      // Reference to the main game loop's entities
+    zmq::socket_t entity_responder;     // For  pulling entity data from the clients
     std::mutex entity_mutex;            // Mutex for synchronizing access to entities
+    unordered_map<int, Entity*> entityMap;
 
 public:
     // Constructor
-    Server(std::vector<Entity>& entities_ref);
+    Server();
 
     // Main server run loop (handles clients and broadcasting)
     void run();
@@ -30,4 +34,6 @@ public:
 
     // Broadcast updated entity positions to all clients
     void broadcastEntityUpdates();
+
+    unordered_map<int, Entity*> getEntityMap();
 };
