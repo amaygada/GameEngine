@@ -15,8 +15,8 @@ public:
     Timeline *inputSubsystemTimeline;
 
     InputSubsystem(Timeline *inputSubsystemTimeline);
-    void doInput(std::vector<Entity> &E);
-    virtual void customInput(std::vector<Entity> &E){};
+    void doInput(std::vector<Entity *> &E);
+    virtual void customInput(std::vector<Entity *> &E){};
 };
 
 // Abstract class for modular input handling

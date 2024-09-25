@@ -9,8 +9,8 @@ class PhysicsSubsystem{
     public:
         Timeline *physicsSubsystemTimeline;
         PhysicsSubsystem(Timeline *physicsTimeline);
-        void doPhysics(std::vector<Entity> &E);
-        virtual void customPhysics(std::vector<Entity> &E){};
+        void doPhysics(std::vector<Entity *> &E);
+        virtual void customPhysics(std::vector<Entity *> &E){};
 };
 
 
@@ -22,6 +22,7 @@ class ModularPhysicsHandler {
         int64_t start_time = -1;
         bool input_allowed = false;
 
+        ModularPhysicsHandler();
         ModularPhysicsHandler(bool input_allowed);
         virtual void handleInput(Entity *entity){};
         virtual void updatePhysics(Entity *entity, double velocity_x, double velocity_y, double acceleration_x, double acceleration_y, int direction) = 0;

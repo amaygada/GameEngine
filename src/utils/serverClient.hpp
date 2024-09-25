@@ -6,26 +6,52 @@
 class ServerClient {
 
     public:
-        ServerClient(char *type);
+        ServerClient();
 
-        bool initSocket(zmq::socket_t socket, zmq::socket_type type);
+        ServerClient(std::string type);
 
-        bool update(std::vector<Entity> entities);
+        void update(std::vector<Entity *> *allEntities, std::vector<Entity *> *myEntities, std::vector<Entity *> *otherEntities);
 
         bool isClient();
 
-        int numClients();
+        int getConnectionID();
+
+        int getNumClients();
+
+        std::string getMessageString(std::vector<Entity *> *entities);
 
     private: 
-        bool isClient;
-        std::vector<Entity> entities;
-        zmq::context_t context;
-        zmq::socket_t req_socket;
-        zmq::socket_t pub_socket;
+        // Client-specific fields
 
-        bool sendToServer(char *message);
-        bool receiveFromClient(char *request);
-        bool publishMessage(char *message);
-        bool subscribeMessage();
+        bool isClientFlag;
+        bool isClientConnected;
+
+        // Server-specific fields
+
+        std::vector<int> iterations;
+        int numClients;
+        int numEntities;
+
+        // Common fields
+
+        int connectionID;
+
+        zmq::context_t context;
+        zmq::socket_t socket_clientupdate;
+        zmq::socket_t socket_serverupdate;
+
+        void initSockets();
+
+        void PUB(std::vector<Entity *> *entities);
+        void publishMessage(std::vector<Entity *> *entities);
+
+        void SUB(std::vector<Entity *> *entities);
+        void subscribeMessage(std::vector<Entity *> *entities);
+
+        // Helper functions
+
+        std::vector<Entity *> getEntitiesFromMessage(std::string message);
+        void updateEntities(std::vector<Entity *> *allEntities, std::vector<Entity *> *myEntities, std::vector<Entity *> *otherEntities);
+        Entity *getEntityByUniqueID(int ID, std::vector<Entity *> *entities);
 
 };

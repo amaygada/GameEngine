@@ -16,15 +16,23 @@ public:
     int x, y;           // Position
     int w, h;           // Width and Height
     SDL_Color color;    // Color of the object
-    ModularInputHandler* inputHandler;
+    ModularInputHandler *inputHandler;
     ModularPhysicsHandler *physicsHandler;
     ModularPatternHandler *patternHandler;
+
+    int uniqueID;
+    int attachedClientID;
 
     // Default constructor
     Entity();
 
     // Constructor to initialize the entity
     Entity(int x, int y, int w, int h, SDL_Color color);
+
+    void setUniqueID(int ID);
+    void setAttachedClientID(int ID);
+
+    void cloneFields(Entity *entity);
 
     // Method to draw the entity
     void draw(SDL_Renderer *renderer);
@@ -35,6 +43,6 @@ public:
     void updateDimensions(int newx, int newy, int neww, int newh); 
 
     // Method to check if this entity collides with another entity
-    bool checkCollision(const Entity &other) const;
+    bool checkCollision(const Entity *other) const;
 
 };

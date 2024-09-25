@@ -19,7 +19,7 @@ class Renderer {
         void init(string windowName);
         void getWindowSize(int *window_width, int *window_height);
         void prepareScene(void);
-        void presentScene(std::vector<Entity> &E);
+        void presentScene(std::vector<Entity *> &E);
         void cleanup();
         // ~Renderer();
 };

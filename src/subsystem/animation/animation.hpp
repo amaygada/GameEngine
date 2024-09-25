@@ -9,8 +9,8 @@ class AnimationSubsystem {
     public:
         Timeline *animationSubsystemTimeline;
         AnimationSubsystem(Timeline *animationTimeline);
-        void doAnimation(std::vector<Entity> &E);
-        void customAnimation(std::vector<Entity> &E){};
+        void doAnimation(std::vector<Entity *> &E);
+        void customAnimation(std::vector<Entity *> &E){};
 };
 
 // Abstract class for modular entity pattern handling

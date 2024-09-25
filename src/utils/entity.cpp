@@ -1,17 +1,41 @@
 #include "entity.hpp"
 
 // Entity default constructor
-Entity::Entity() : x(0), y(0), w(0), h(0), color({0, 0, 0, 255}) {
+Entity::Entity() : x(0), y(0), w(0), h(0), color({0, 0, 0, 255}), uniqueID(-1) {
     inputHandler = nullptr;
     physicsHandler = nullptr;
     patternHandler = nullptr;
 }
 
 // Entity parametric constructor
-Entity::Entity(int x, int y, int w, int h, SDL_Color color): x(x), y(y), w(w), h(h), color(color) {
+Entity::Entity(int x, int y, int w, int h, SDL_Color color): x(x), y(y), w(w), h(h), color(color), uniqueID(-1) {
     inputHandler = nullptr;
     physicsHandler = nullptr;
     patternHandler = nullptr;
+}
+
+void Entity::cloneFields(Entity *entity) {
+
+    this->x = entity->x;
+    this->y = entity->y;
+    
+    this->w = entity->w;
+    this->h = entity->h;
+
+    this->color = entity->color;
+
+}
+
+void Entity::setUniqueID(int ID) {
+
+    this->uniqueID = ID;
+
+}
+
+void Entity::setAttachedClientID(int ID) {
+
+    this->attachedClientID = ID;
+
 }
 
 // Draw an Entity
@@ -28,9 +52,9 @@ SDL_Rect Entity::getBoundingBox() const {
 }
 
 // Method to check if this entity collides with another entity
-bool Entity::checkCollision(const Entity &other) const {
+bool Entity::checkCollision(const Entity *other) const {
     SDL_Rect thisRect = getBoundingBox();
-    SDL_Rect otherRect = other.getBoundingBox();
+    SDL_Rect otherRect = other->getBoundingBox();
     return SDL_HasIntersection(&thisRect, &otherRect);
 }
 
