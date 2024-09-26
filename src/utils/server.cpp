@@ -31,9 +31,9 @@ void Server::handleClient(int client_id) {
                 std::string entity_data(static_cast<char*>(request.data()), request.size());
                 // std::cout << "Received entity update from client " << client_id << ": " << entity_data << std::endl;
 
-                // Parse the received data (we expect the data to be "client_id,x,y")
-                int received_id, x, y;
-                sscanf(entity_data.c_str(), "%d,%d,%d", &received_id, &x, &y);
+                // Parse the received data (we expect the data to be "client_id,x,y,w,h,r,g,b,a")
+                int received_id, x, y, w, h, r, g, b, a;
+                sscanf(entity_data.c_str(), "%d,%d,%d,%d,%d,%d,%d,%d,%d", &received_id, &x, &y, &w, &h, &r, &g, &b, &a);
 
                 // Check if the received client ID matches the current client_id
                 if (received_id == client_id) {
@@ -41,12 +41,12 @@ void Server::handleClient(int client_id) {
                     if (entityMap.find(client_id) != entityMap.end()) {
                         entityMap[client_id]->x = x;
                         entityMap[client_id]->y = y;
-                        // std::cout << "Updated entity for client " << client_id << " to position (" << x << ", " << y << ")" << std::endl;
+                        entityMap[client_id]->w = w;
+                        entityMap[client_id]->h = h;
+                        entityMap[client_id]->color = {static_cast<Uint8>(r), static_cast<Uint8>(g), static_cast<Uint8>(b), static_cast<Uint8>(a)};
                     } else {
                         std::cerr << "Entity not found for client " << client_id << std::endl;
                     }
-                } else {
-                    //std::cerr << "Client ID mismatch: expected " << client_id << ", but received " << received_id << std::endl;
                 }
             }
 
@@ -65,12 +65,19 @@ void Server::broadcastEntityUpdates() {
     // Prepare updated entity data to broadcast (client_id, x, y for each entity)
     {
         std::lock_guard<std::mutex> lock(entity_mutex);
-        for (const auto pair : entityMap) {
+        // Prepare updated entity data to broadcast (client_id, x, y, w, h, r, g, b, a for each entity)
+        for (const auto& pair : entityMap) {
             int client_id = pair.first;
             Entity* entity = pair.second;
-            broadcast_message += std::to_string(client_id) + "," + 
-                                 std::to_string(entity->x) + "," + 
-                                 std::to_string(entity->y) + ";";
+            broadcast_message += std::to_string(client_id) + "," +
+                                std::to_string(entity->x) + "," +
+                                std::to_string(entity->y) + "," +
+                                std::to_string(entity->w) + "," +
+                                std::to_string(entity->h) + "," +
+                                std::to_string(entity->color.r) + "," +
+                                std::to_string(entity->color.g) + "," +
+                                std::to_string(entity->color.b) + "," +
+                                std::to_string(entity->color.a) + ";";
         }
     }
 
@@ -91,10 +98,10 @@ void Server::run() {
             std::string client_msg(static_cast<char*>(request.data()), request.size());
             // std::cout << "Received handshake request: " << client_msg << std::endl;
 
-            // Parse entity data (you can improve this by adding error checks)
-            int x = 0, y = 0;
-            sscanf(client_msg.c_str(), "Entity data: x=%d, y=%d", &x, &y);
             // std::cout << client_msg << std::endl;
+            // Parse entity data (x, y, w, h, and color)
+            int x = 0, y = 0, w = 0, h = 0, r = 0, g = 0, b = 0, a = 0;
+            sscanf(client_msg.c_str(), "Entity data: x=%d, y=%d, w=%d, h=%d, r=%d, g=%d, b=%d, a=%d", &x, &y, &w, &h, &r, &g, &b, &a);
             // std::cout << "Client entity position: (" << x << ", " << y << ")" << std::endl;
 
             // Assign a random client ID
@@ -102,7 +109,7 @@ void Server::run() {
             std::string reply = "Handshake OK, assigned client ID: " + std::to_string(client_id);
 
             // Store the entity data in the server's entityMap
-            entityMap[client_id] = new Entity(x, y, 50, 50, {255, 0, 0, 255});
+            entityMap[client_id] = new Entity(x, y, w, h, {static_cast<Uint8>(r), static_cast<Uint8>(g), static_cast<Uint8>(b), static_cast<Uint8>(a)});
             // std::cout << "Server stored entity for client ID " << client_id << std::endl;
 
             // Respond with the assigned client ID

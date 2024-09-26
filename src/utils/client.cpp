@@ -23,9 +23,16 @@ Client::Client(Entity* &entity_ref) :
 void Client::performHandshake() {
 
     // std::cout << "Sending entity data: x=" << entity->x << ", y=" << entity->y << std::endl;
-    // Send initial entity data (x and y coordinates) to the server
-    std::string request_message = "Entity data: x=" + std::to_string(entity->x) + 
-                                  ", y=" + std::to_string(entity->y);
+    // Send initial entity data (x, y, w, h, r, g, b, a) to the server
+    std::string request_message = "Entity data: x=" + std::to_string(entity->x) +
+                                ", y=" + std::to_string(entity->y) +
+                                ", w=" + std::to_string(entity->w) +
+                                ", h=" + std::to_string(entity->h) +
+                                ", r=" + std::to_string(entity->color.r) +
+                                ", g=" + std::to_string(entity->color.g) +
+                                ", b=" + std::to_string(entity->color.b) +
+                                ", a=" + std::to_string(entity->color.a);
+
     zmq::message_t request(request_message.size());
     memcpy(request.data(), request_message.data(), request_message.size());
     handshake_requester.send(request, zmq::send_flags::none);
@@ -60,9 +67,17 @@ void Client::performHandshake() {
 // Method to send entity's position data to the server
 void Client::sendEntityUpdate() {
     // Send entity's position data to server
+    // Send entity's position, size, and color data to the server
     std::string entity_data = std::to_string(client_id) + "," +
-                              std::to_string(entity->x) + "," +
-                              std::to_string(entity->y);
+                            std::to_string(entity->x) + "," +
+                            std::to_string(entity->y) + "," +
+                            std::to_string(entity->w) + "," +
+                            std::to_string(entity->h) + "," +
+                            std::to_string(entity->color.r) + "," +
+                            std::to_string(entity->color.g) + "," +
+                            std::to_string(entity->color.b) + "," +
+                            std::to_string(entity->color.a);
+
     zmq::message_t message(entity_data.size());
     memcpy(message.data(), entity_data.data(), entity_data.size());
 
@@ -96,8 +111,8 @@ void Client::receiveEntityUpdates() {
         std::istringstream iss(broadcast_data);
         std::string entity_update;
         while (std::getline(iss, entity_update, ';')) {
-            int received_client_id, x, y;
-            sscanf(entity_update.c_str(), "%d,%d,%d", &received_client_id, &x, &y);
+            int received_client_id, x, y, w, h, r, g, b, a;
+            sscanf(entity_update.c_str(), "%d,%d,%d,%d,%d,%d,%d,%d,%d", &received_client_id, &x, &y, &w, &h, &r, &g, &b, &a);
 
             // Ignore updates for the client's own entity
             if (received_client_id != client_id) {
@@ -105,11 +120,15 @@ void Client::receiveEntityUpdates() {
                     // Update the entity in the local entityMap
                     entityMap[received_client_id]->x = x;
                     entityMap[received_client_id]->y = y;
+                    entityMap[received_client_id]->w = w;
+                    entityMap[received_client_id]->h = h;
+                    entityMap[received_client_id]->color = {static_cast<Uint8>(r), static_cast<Uint8>(g), static_cast<Uint8>(b), static_cast<Uint8>(a)};
+
                     // std::cout << "Updated entity for client ID " << received_client_id 
                             //   << " to position (" << x << ", " << y << ")" << std::endl;
                 } else {
                     // If the entity doesn't exist in the map, add it (optional)
-                    entityMap[received_client_id] = new Entity(x, y, 50, 50, {255, 255, 255, 255});
+                    entityMap[received_client_id] = new Entity(x, y, w, h, {static_cast<Uint8>(r), static_cast<Uint8>(g), static_cast<Uint8>(b), static_cast<Uint8>(a)});
                     // std::cout << "Added new entity for client ID " << received_client_id 
                             //   << " at position (" << x << ", " << y << ")" << std::endl;
                 }
