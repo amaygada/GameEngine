@@ -22,10 +22,10 @@ Client::Client(Entity* &entity_ref) :
 // Method to perform handshake with the server
 void Client::performHandshake() {
 
-    std::cout << "Sending entity data: x=" << entity->x << ", y=" << entity->y << std::endl;
+    // std::cout << "Sending entity data: x=" << entity->x << ", y=" << entity->y << std::endl;
     // Send initial entity data (x and y coordinates) to the server
     std::string request_message = "Entity data: x=" + std::to_string(entity->x) + 
-                                  ", y=" + std::to_string(entity->y); // TODO UPDATE THIS TO INCLUDE ALL NON-TRIVIAL VALUES FOR THE ENTITY, NOT JUST x AND y
+                                  ", y=" + std::to_string(entity->y);
     zmq::message_t request(request_message.size());
     memcpy(request.data(), request_message.data(), request_message.size());
     handshake_requester.send(request, zmq::send_flags::none);
@@ -37,17 +37,18 @@ void Client::performHandshake() {
     // Check if the receive operation was successful
     if (result) {
         std::string reply_str(static_cast<char*>(reply.data()), reply.size());
-        std::cout << "Handshake reply: " << reply_str << std::endl;
+        // std::cout << "Handshake reply: " << reply_str << std::endl;
 
         // Extract the assigned client ID from the server's reply
         std::size_t pos = reply_str.find("client ID: ");
         if (pos != std::string::npos) {
             std::string id_str = reply_str.substr(pos + 11);  // Extract client ID after "client ID: "
+            // printf("Client ID substring: %s\n", id_str.c_str()); // TODO remove this
             client_id = std::stoi(id_str);  // Convert client ID from string to integer
 
             // Store the entity in the entity map with the assigned client ID
             entityMap[client_id] = entity;
-            std::cout << "Assigned client ID: " << client_id << ", entity stored in map." << std::endl;
+            // std::cout << "Assigned client ID: " << client_id << ", entity stored in map." << std::endl;
         } else {
             std::cerr << "Failed to extract client ID from server reply!" << std::endl;
         }
@@ -82,10 +83,14 @@ void Client::sendEntityUpdate() {
 // Method to receive entity updates from the server
 void Client::receiveEntityUpdates() {
     zmq::message_t update_msg;
+    std::string broadcast_data = "";
 
     // Receive entity updates broadcasted from the server
-    if (entity_subscriber.recv(update_msg, zmq::recv_flags::dontwait)) {
-        std::string broadcast_data(static_cast<char*>(update_msg.data()), update_msg.size());
+    while (entity_subscriber.recv(update_msg, zmq::recv_flags::dontwait)) {
+        broadcast_data = std::string(static_cast<char*>(update_msg.data()), update_msg.size());
+    }
+
+    if (strcmp(broadcast_data.c_str(), "") != 0) {
 
         // Split the broadcasted data into individual entity updates (e.g., "client_id,x,y;")
         std::istringstream iss(broadcast_data);
@@ -100,13 +105,13 @@ void Client::receiveEntityUpdates() {
                     // Update the entity in the local entityMap
                     entityMap[received_client_id]->x = x;
                     entityMap[received_client_id]->y = y;
-                    std::cout << "Updated entity for client ID " << received_client_id 
-                              << " to position (" << x << ", " << y << ")" << std::endl;
+                    // std::cout << "Updated entity for client ID " << received_client_id 
+                            //   << " to position (" << x << ", " << y << ")" << std::endl;
                 } else {
                     // If the entity doesn't exist in the map, add it (optional)
                     entityMap[received_client_id] = new Entity(x, y, 50, 50, {255, 255, 255, 255});
-                    std::cout << "Added new entity for client ID " << received_client_id 
-                              << " at position (" << x << ", " << y << ")" << std::endl;
+                    // std::cout << "Added new entity for client ID " << received_client_id 
+                            //   << " at position (" << x << ", " << y << ")" << std::endl;
                 }
             }
         }

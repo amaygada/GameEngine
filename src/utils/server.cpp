@@ -19,7 +19,6 @@ Server::Server() :
     }
 
 void Server::handleClient(int client_id) {
-    printf("Handle Client of ID %d initiated\n", client_id); // TODO remove this
     zmq::message_t request;
 
     while (true) {
@@ -42,7 +41,7 @@ void Server::handleClient(int client_id) {
                     if (entityMap.find(client_id) != entityMap.end()) {
                         entityMap[client_id]->x = x;
                         entityMap[client_id]->y = y;
-                        //std::cout << "Updated entity for client " << client_id << " to position (" << x << ", " << y << ")" << std::endl;
+                        // std::cout << "Updated entity for client " << client_id << " to position (" << x << ", " << y << ")" << std::endl;
                     } else {
                         std::cerr << "Entity not found for client " << client_id << std::endl;
                     }
@@ -75,8 +74,6 @@ void Server::broadcastEntityUpdates() {
         }
     }
 
-    // printf("Broadcasting message: %s\n", broadcast_message.c_str()); // TODO remove this
-
     // Send the broadcast message to all clients
     zmq::message_t message(broadcast_message.size());
     memcpy(message.data(), broadcast_message.data(), broadcast_message.size());
@@ -92,13 +89,13 @@ void Server::run() {
         zmq::message_t request;
         if (handshake_responder.recv(request, zmq::recv_flags::dontwait)) {
             std::string client_msg(static_cast<char*>(request.data()), request.size());
-            std::cout << "Received handshake request: " << client_msg << std::endl;
+            // std::cout << "Received handshake request: " << client_msg << std::endl;
 
             // Parse entity data (you can improve this by adding error checks)
             int x = 0, y = 0;
             sscanf(client_msg.c_str(), "Entity data: x=%d, y=%d", &x, &y);
-            std::cout << client_msg << std::endl;
-            std::cout << "Client entity position: (" << x << ", " << y << ")" << std::endl;
+            // std::cout << client_msg << std::endl;
+            // std::cout << "Client entity position: (" << x << ", " << y << ")" << std::endl;
 
             // Assign a random client ID
             int client_id = rand() % 1000;
@@ -106,7 +103,7 @@ void Server::run() {
 
             // Store the entity data in the server's entityMap
             entityMap[client_id] = new Entity(x, y, 50, 50, {255, 0, 0, 255});
-            std::cout << "Server stored entity for client ID " << client_id << std::endl;
+            // std::cout << "Server stored entity for client ID " << client_id << std::endl;
 
             // Respond with the assigned client ID
             zmq::message_t reply_msg(reply.size());

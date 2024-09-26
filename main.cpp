@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
     // Server setup - headless mode
     if (isServer) {
         server = new Server();  // Initialize the server with the entity vector
-        std::cout << "Server started" << std::endl;
+        // std::cout << "Server started" << std::endl;
 
         server->run(); // Server runs in a loop handling multiple clients
     }
@@ -29,10 +29,8 @@ int main(int argc, char *argv[]) {
         // Initialize the application (SDL subsystems, renderer, etc.)
         renderer->init("Game");
 
-        // printf("[E] size: %ld\n", E.size()); // TODO remove this
         // Call the function to create entities
         createEntities(E);
-        // printf("[E] size: %ld\n", E.size()); // TODO remove this
 
         // Initialize the client
         Client* client = nullptr;
@@ -42,7 +40,7 @@ int main(int argc, char *argv[]) {
 
         // Main game loop for client
         int64_t last_render_time = globalTimeline->getTime();
-        std::cout << last_render_time << std::endl;
+        // std::cout << last_render_time << std::endl;
         while(true) {
             int64_t frame_delta = globalTimeline->getTime() - last_render_time;
 
