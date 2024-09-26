@@ -15,8 +15,8 @@ public:
     Timeline *inputSubsystemTimeline;
 
     InputSubsystem(Timeline *inputSubsystemTimeline);
-    void doInput(std::unordered_map<int, Entity*> &entity_map);
-    virtual void customInput(std::unordered_map<int, Entity*> &entity_map){};
+    void doInput(std::unordered_map<int, std::vector<Entity *>> &entity_map);
+    virtual void customInput(std::unordered_map<int, std::vector<Entity *>> &entity_map){};
 };
 
 // Abstract class for modular input handling

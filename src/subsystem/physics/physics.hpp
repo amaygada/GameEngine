@@ -10,8 +10,8 @@ class PhysicsSubsystem{
     public:
         Timeline *physicsSubsystemTimeline;
         PhysicsSubsystem(Timeline *physicsTimeline);
-        void doPhysics(std::unordered_map<int, Entity*> &entity_map);
-        virtual void customPhysics(std::unordered_map<int, Entity*> &entity_map){};
+        void doPhysics(std::unordered_map<int, std::vector<Entity *>> &entity_map);
+        virtual void customPhysics(std::unordered_map<int, std::vector<Entity *>> &entity_map){};
 };
 
 

@@ -20,7 +20,7 @@ class Renderer {
         void init(string windowName);
         void getWindowSize(int *window_width, int *window_height);
         void prepareScene(void);
-        void presentScene(const unordered_map<int, Entity*> &entityMap);
+        void presentScene(const unordered_map<int, std::vector<Entity *>> &entityMap);
         void cleanup();
         // ~Renderer();
 };

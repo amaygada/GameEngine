@@ -54,7 +54,8 @@ void Client::performHandshake() {
             client_id = std::stoi(id_str);  // Convert client ID from string to integer
 
             // Store the entity in the entity map with the assigned client ID
-            entityMap[client_id] = entity;
+            std::vector<Entity *> myEntityVector = {entity};
+            entityMap[client_id] = myEntityVector;
             // std::cout << "Assigned client ID: " << client_id << ", entity stored in map." << std::endl;
         } else {
             std::cerr << "Failed to extract client ID from server reply!" << std::endl;
@@ -110,25 +111,50 @@ void Client::receiveEntityUpdates() {
         // Split the broadcasted data into individual entity updates (e.g., "client_id,x,y;")
         std::istringstream iss(broadcast_data);
         std::string entity_update;
+
+        bool serverEntityReceived = false;
         while (std::getline(iss, entity_update, ';')) {
             int received_client_id, x, y, w, h, r, g, b, a;
             sscanf(entity_update.c_str(), "%d,%d,%d,%d,%d,%d,%d,%d,%d", &received_client_id, &x, &y, &w, &h, &r, &g, &b, &a);
 
             // Ignore updates for the client's own entity
             if (received_client_id != client_id) {
+
+                if (received_client_id == -1) {
+
+                    if (serverEntityReceived) {
+
+                        entityMap[-1].push_back(new Entity(x, y, w, h, {static_cast<Uint8>(r), static_cast<Uint8>(g), static_cast<Uint8>(b), static_cast<Uint8>(a)}));
+
+                    }
+                    else {
+
+                        serverEntityReceived = true;
+
+                        std::vector<Entity *> newEntity = {new Entity(x, y, w, h, {static_cast<Uint8>(r), static_cast<Uint8>(g), static_cast<Uint8>(b), static_cast<Uint8>(a)})};
+                        entityMap[-1] = newEntity;
+
+                    }
+
+                    continue;
+
+                }
+
                 if (entityMap.find(received_client_id) != entityMap.end()) {
                     // Update the entity in the local entityMap
-                    entityMap[received_client_id]->x = x;
-                    entityMap[received_client_id]->y = y;
-                    entityMap[received_client_id]->w = w;
-                    entityMap[received_client_id]->h = h;
-                    entityMap[received_client_id]->color = {static_cast<Uint8>(r), static_cast<Uint8>(g), static_cast<Uint8>(b), static_cast<Uint8>(a)};
+
+                    entityMap[received_client_id].at(0)->x = x;
+                    entityMap[received_client_id].at(0)->y = y;
+                    entityMap[received_client_id].at(0)->w = w;
+                    entityMap[received_client_id].at(0)->h = h;
+                    entityMap[received_client_id].at(0)->color = {static_cast<Uint8>(r), static_cast<Uint8>(g), static_cast<Uint8>(b), static_cast<Uint8>(a)};
 
                     // std::cout << "Updated entity for client ID " << received_client_id 
                             //   << " to position (" << x << ", " << y << ")" << std::endl;
                 } else {
                     // If the entity doesn't exist in the map, add it (optional)
-                    entityMap[received_client_id] = new Entity(x, y, w, h, {static_cast<Uint8>(r), static_cast<Uint8>(g), static_cast<Uint8>(b), static_cast<Uint8>(a)});
+                    std::vector<Entity *> newEntity = {new Entity(x, y, w, h, {static_cast<Uint8>(r), static_cast<Uint8>(g), static_cast<Uint8>(b), static_cast<Uint8>(a)})};
+                    entityMap[received_client_id] = newEntity;
                     // std::cout << "Added new entity for client ID " << received_client_id 
                             //   << " at position (" << x << ", " << y << ")" << std::endl;
                 }
@@ -138,6 +164,6 @@ void Client::receiveEntityUpdates() {
 }
 
 // Getter for entity_map
-unordered_map<int, Entity*>& Client::getEntityMap() {
+unordered_map<int, std::vector<Entity *>>& Client::getEntityMap() {
     return entityMap;
 }

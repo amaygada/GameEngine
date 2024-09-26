@@ -22,6 +22,19 @@ int main(int argc, char *argv[]) {
         server = new Server();  // Initialize the server with the entity vector
         // std::cout << "Server started" << std::endl;
 
+        // Create entities for the server
+        SDL_Color shapeColor1 = {255, 0, 0, 255};  // Red color
+        Entity* shape1 = new Entity(800, 400, 50, 200, shapeColor1);
+        shape1->physicsHandler = new DefaultGravityPhysicsHandler(false);
+        E.push_back(shape1);  // Push the dynamically allocated entity
+
+        SDL_Color shapeColor2 = {255, 255, 0, 255};  // Yellow color
+        Entity* shape2 = new Entity(400, 500, 75, 75, shapeColor2);
+        // TODO give it a pattern handler to make it follow a pattern
+        E.push_back(shape2);  // Push the dynamically allocated entity
+
+        server->addEntities(E);
+
         server->run(); // Server runs in a loop handling multiple clients
     }
     else { // Client setup
@@ -69,6 +82,7 @@ int main(int argc, char *argv[]) {
 }
 
 void createEntities(std::vector<Entity*>& E) {
+
     // Create entities for the game
     SDL_Color shapeColor1 = {0, 0, 255, 255};  // Blue color
     Entity* shape1 = new Entity(300, 300, 100, 100, shapeColor1);

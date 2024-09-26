@@ -40,11 +40,17 @@ void Renderer::prepareScene() {
 
 // Function to present the scene
 // attach timer here
-void Renderer::presentScene(const unordered_map<int, Entity*> &entity_map) {
+void Renderer::presentScene(const unordered_map<int, std::vector<Entity *>> &entity_map) {
     // Draw the entities from the entity_map
     for (const auto pair : entity_map) {
-        Entity* object = pair.second;  // Get the entity
-        object->draw(app->renderer);  // Draw the entity on the renderer
+
+        std::vector<Entity *> entities = pair.second;
+        for (Entity *entity : entities) {
+
+            entity->draw(app->renderer);
+
+        }
+
     }
 
     SDL_RenderPresent(app->renderer);  // Present the final rendered scene

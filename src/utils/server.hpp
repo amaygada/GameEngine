@@ -9,6 +9,15 @@
 #include <cstdlib>
 #include <ctime>
 #include <map>
+#include "../subsystem/input_handling/input.hpp"
+#include "../subsystem/physics/physics.hpp"
+#include "../subsystem/rendering/render.hpp"
+#include "../subsystem/collision/collision.hpp"
+
+extern InputSubsystem *inputSubsystem;
+extern PhysicsSubsystem *physicsSubsystem;
+extern AnimationSubsystem *animationSubsystem;
+extern CollisionSubsystem *collisionSubsystem;
 
 class Server {
 private:
@@ -17,7 +26,8 @@ private:
     zmq::socket_t entity_publisher;     // For broadcasting updated positions to clients
     zmq::socket_t entity_responder;     // For  pulling entity data from the clients
     std::mutex entity_mutex;            // Mutex for synchronizing access to entities
-    unordered_map<int, Entity*> entityMap;
+    // unordered_map<int, Entity*> entityMap;
+    unordered_map<int, std::vector<Entity *>> entityMap;
 
 public:
     // Constructor
@@ -35,5 +45,8 @@ public:
     // Broadcast updated entity positions to all clients
     void broadcastEntityUpdates();
 
-    unordered_map<int, Entity*> getEntityMap();
+    // Adds the given entities to the server's stored entities, as server-side entities
+    void addEntities(std::vector<Entity*> E);
+
+    unordered_map<int, std::vector<Entity *>> getEntityMap();
 };

@@ -4,13 +4,19 @@ PhysicsSubsystem::PhysicsSubsystem(Timeline *physicsTimeline) {
     this->physicsSubsystemTimeline = physicsTimeline;
 }
 
-void PhysicsSubsystem::doPhysics(unordered_map<int, Entity*> &entity_map) {
+void PhysicsSubsystem::doPhysics(unordered_map<int, std::vector<Entity *>> &entity_map) {
     for (const auto pair : entity_map) {
-        Entity* entity = pair.second;
-        if (entity->physicsHandler != nullptr){
-            if (entity->physicsHandler->input_allowed) entity->physicsHandler->handleInput(entity);
-            else entity->physicsHandler->updatePhysics(entity, 0, 0, 0, PHYS_GRAVITY_CONSTANT, -1);
+
+        std::vector<Entity *> entities = pair.second;
+        for (Entity *entity : entities) {
+
+            if (entity->physicsHandler != nullptr){
+                if (entity->physicsHandler->input_allowed) entity->physicsHandler->handleInput(entity);
+                else entity->physicsHandler->updatePhysics(entity, 0, 0, 0, PHYS_GRAVITY_CONSTANT, -1);
+            }
+
         }
+        
     }
 
     this->customPhysics(entity_map);
@@ -118,7 +124,6 @@ void DefaultMovementPhysicsHandler::updatePhysics(Entity *entity, double velocit
 
     int timeValue = int(physicsTimeline->getTime() - this->start_time);
 
-    int current_loc = entity->x;
     int to_be_loc = velocity_x + (0.5 * acceleration_x * (timeValue * timeValue));
 
     int locDifference = direction * (to_be_loc);
@@ -131,7 +136,6 @@ void DefaultMovementPhysicsHandler::updatePhysics(Entity *entity, double velocit
         entity->x += locDifference;
     }
 
-    current_loc = entity->y;
     to_be_loc = velocity_y + (0.5 * acceleration_y * (timeValue * timeValue));
     locDifference = direction * (to_be_loc);
 

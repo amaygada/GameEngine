@@ -39,11 +39,11 @@ void Server::handleClient(int client_id) {
                 if (received_id == client_id) {
                     // Update the entity in the entityMap
                     if (entityMap.find(client_id) != entityMap.end()) {
-                        entityMap[client_id]->x = x;
-                        entityMap[client_id]->y = y;
-                        entityMap[client_id]->w = w;
-                        entityMap[client_id]->h = h;
-                        entityMap[client_id]->color = {static_cast<Uint8>(r), static_cast<Uint8>(g), static_cast<Uint8>(b), static_cast<Uint8>(a)};
+                        entityMap[client_id].at(0)->x = x;
+                        entityMap[client_id].at(0)->y = y;
+                        entityMap[client_id].at(0)->w = w;
+                        entityMap[client_id].at(0)->h = h;
+                        entityMap[client_id].at(0)->color = {static_cast<Uint8>(r), static_cast<Uint8>(g), static_cast<Uint8>(b), static_cast<Uint8>(a)};
                     } else {
                         std::cerr << "Entity not found for client " << client_id << std::endl;
                     }
@@ -67,18 +67,26 @@ void Server::broadcastEntityUpdates() {
         std::lock_guard<std::mutex> lock(entity_mutex);
         // Prepare updated entity data to broadcast (client_id, x, y, w, h, r, g, b, a for each entity)
         for (const auto& pair : entityMap) {
+            
             int client_id = pair.first;
-            Entity* entity = pair.second;
-            broadcast_message += std::to_string(client_id) + "," +
-                                std::to_string(entity->x) + "," +
-                                std::to_string(entity->y) + "," +
-                                std::to_string(entity->w) + "," +
-                                std::to_string(entity->h) + "," +
-                                std::to_string(entity->color.r) + "," +
-                                std::to_string(entity->color.g) + "," +
-                                std::to_string(entity->color.b) + "," +
-                                std::to_string(entity->color.a) + ";";
+
+            std::vector<Entity *> entities = pair.second;
+            for (Entity *entity : entities) {
+
+                broadcast_message += std::to_string(client_id) + "," +
+                                     std::to_string(entity->x) + "," +
+                                     std::to_string(entity->y) + "," +
+                                     std::to_string(entity->w) + "," +
+                                     std::to_string(entity->h) + "," +
+                                     std::to_string(entity->color.r) + "," +
+                                     std::to_string(entity->color.g) + "," +
+                                     std::to_string(entity->color.b) + "," +
+                                     std::to_string(entity->color.a) + ";";
+
+            }
+
         }
+
     }
 
     // Send the broadcast message to all clients
@@ -109,7 +117,8 @@ void Server::run() {
             std::string reply = "Handshake OK, assigned client ID: " + std::to_string(client_id);
 
             // Store the entity data in the server's entityMap
-            entityMap[client_id] = new Entity(x, y, w, h, {static_cast<Uint8>(r), static_cast<Uint8>(g), static_cast<Uint8>(b), static_cast<Uint8>(a)});
+            std::vector<Entity *> entities = {new Entity(x, y, w, h, {static_cast<Uint8>(r), static_cast<Uint8>(g), static_cast<Uint8>(b), static_cast<Uint8>(a)})};
+            entityMap[client_id] = entities;
             // std::cout << "Server stored entity for client ID " << client_id << std::endl;
 
             // Respond with the assigned client ID
@@ -120,6 +129,10 @@ void Server::run() {
             // (Optional) Create a thread to handle this client, passing the client_id
             client_threads.push_back(std::thread(&Server::handleClient, this, client_id));
         }
+
+        physicsSubsystem->doPhysics(entityMap);
+        collisionSubsystem->doCollision(entityMap);
+        //animationSubsystem->doAnimation(E);
 
         // Broadcast updated entity positions to all clients
         broadcastEntityUpdates();
@@ -133,7 +146,13 @@ void Server::run() {
     }
 }
 
+void Server::addEntities(std::vector<Entity*> E) {
+
+    entityMap[-1] = E;
+
+}
+
 // Getter for entity_map
-unordered_map<int, Entity*> Server::getEntityMap() {
+unordered_map<int, std::vector<Entity *>> Server::getEntityMap() {
     return entityMap;
 }

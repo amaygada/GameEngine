@@ -11,7 +11,7 @@ private:
     zmq::socket_t handshake_requester;   // For REQ-REP handshake
     zmq::socket_t entity_subscriber;     // For receiving entity updates from server
     zmq::socket_t entity_publisher;  // REQ socket for sending entity updates
-    unordered_map<int, Entity*> entityMap;
+    unordered_map<int, std::vector<Entity *>> entityMap;
     Entity* entity;
     int client_id;
 
@@ -29,5 +29,5 @@ public:
     void receiveEntityUpdates();
 
     // Getter for entity map
-    unordered_map<int, Entity*>& getEntityMap();
+    unordered_map<int, std::vector<Entity *>>& getEntityMap();
 };
