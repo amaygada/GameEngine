@@ -19,6 +19,7 @@ Server::Server() :
     }
 
 void Server::handleClient(int client_id) {
+    printf("Handle Client of ID %d initiated\n", client_id); // TODO remove this
     zmq::message_t request;
 
     while (true) {
@@ -74,6 +75,8 @@ void Server::broadcastEntityUpdates() {
         }
     }
 
+    // printf("Broadcasting message: %s\n", broadcast_message.c_str()); // TODO remove this
+
     // Send the broadcast message to all clients
     zmq::message_t message(broadcast_message.size());
     memcpy(message.data(), broadcast_message.data(), broadcast_message.size());
@@ -87,7 +90,7 @@ void Server::run() {
     while (true) {
         // Wait for new clients (this could be a new handshake request)
         zmq::message_t request;
-        if (handshake_responder.recv(request, zmq::recv_flags::none)) {
+        if (handshake_responder.recv(request, zmq::recv_flags::dontwait)) {
             std::string client_msg(static_cast<char*>(request.data()), request.size());
             std::cout << "Received handshake request: " << client_msg << std::endl;
 

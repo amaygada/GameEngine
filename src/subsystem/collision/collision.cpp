@@ -10,7 +10,7 @@ void CollisionSubsystem::doCollision(std::unordered_map<int, Entity*> &entity_ma
         for (auto it2 = std::next(it1); it2 != entity_map.end(); ++it2) {
             if (it1->second->checkCollision(*(it2->second))) {
                 std::cout << "Collision detected between Entity " << it1->first << " and Entity " << it2->first << std::endl;
-                exit(0);
+                // exit(0);
             }
         }
     }

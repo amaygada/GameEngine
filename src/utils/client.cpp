@@ -25,7 +25,7 @@ void Client::performHandshake() {
     std::cout << "Sending entity data: x=" << entity->x << ", y=" << entity->y << std::endl;
     // Send initial entity data (x and y coordinates) to the server
     std::string request_message = "Entity data: x=" + std::to_string(entity->x) + 
-                                  ", y=" + std::to_string(entity->y);
+                                  ", y=" + std::to_string(entity->y); // TODO UPDATE THIS TO INCLUDE ALL NON-TRIVIAL VALUES FOR THE ENTITY, NOT JUST x AND y
     zmq::message_t request(request_message.size());
     memcpy(request.data(), request_message.data(), request_message.size());
     handshake_requester.send(request, zmq::send_flags::none);
@@ -55,7 +55,6 @@ void Client::performHandshake() {
         std::cerr << "Failed to receive handshake reply from server" << std::endl;
     }
 }
-
 
 // Method to send entity's position data to the server
 void Client::sendEntityUpdate() {

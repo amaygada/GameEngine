@@ -29,12 +29,14 @@ int main(int argc, char *argv[]) {
         // Initialize the application (SDL subsystems, renderer, etc.)
         renderer->init("Game");
 
+        // printf("[E] size: %ld\n", E.size()); // TODO remove this
         // Call the function to create entities
-        createEntities(E);  
+        createEntities(E);
+        // printf("[E] size: %ld\n", E.size()); // TODO remove this
 
         // Initialize the client
         Client* client = nullptr;
-        client = new Client(E[1]);
+        client = new Client(E[0]); // TODO CHANGE THIS TO USE THE COMMAND-LINE ARGUMENT INSTEAD OF A HARD-CODED VALUE. Even better, let's just make this dynamic for any number of clients if we can
         client->performHandshake(); // Performing a handshake with the server
         //std::unordered_map<int, Entity*> entity_map = client->getEntityMap();
 
@@ -76,15 +78,13 @@ void createEntities(std::vector<Entity*>& E) {
     E.push_back(shape1);  // Push the dynamically allocated entity
 
     // Create entities for the game
-    SDL_Color shapeColor2 = {255, 0, 255, 255};  // Red color
+    SDL_Color shapeColor2 = {255, 0, 255, 255};  // Pink color
     Entity* shape2 = new Entity(500, 500, 150, 150, shapeColor2);
     shape2->physicsHandler = new DefaultMovementPhysicsHandler(true);
     E.push_back(shape2);  // Push the dynamically allocated entity
 
-
-
     // Initialize pattern-following shape
-    SDL_Color shapeColor3 = {255, 255, 0, 255};  // Red color
+    SDL_Color shapeColor3 = {255, 255, 0, 255};  // Yellow color
     Entity* shape3 = new Entity(700, 700, 150, 150, shapeColor3);
     //shape2->physicsHandler = new DefaultMovementPhysicsHandler(true);
     //shape3.patternHandler = new DefaultPatternHandler(shape3Path);
