@@ -2,6 +2,7 @@
 #include "./../../utils/entity.hpp"
 #include "./../../utils/defs.hpp"
 #include "./../../utils/timer.hpp"
+#include <unordered_map>
 
 class Entity; // Forward declaration due to circular dependency
 
@@ -9,8 +10,8 @@ class PhysicsSubsystem{
     public:
         Timeline *physicsSubsystemTimeline;
         PhysicsSubsystem(Timeline *physicsTimeline);
-        void doPhysics(std::vector<Entity> &E);
-        virtual void customPhysics(std::vector<Entity> &E){};
+        void doPhysics(std::unordered_map<int, Entity*> &entity_map);
+        virtual void customPhysics(std::unordered_map<int, Entity*> &entity_map){};
 };
 
 

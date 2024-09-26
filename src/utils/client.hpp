@@ -29,5 +29,5 @@ public:
     void receiveEntityUpdates();
 
     // Getter for entity map
-    unordered_map<int, Entity*> getEntityMap();
+    unordered_map<int, Entity*>& getEntityMap();
 };

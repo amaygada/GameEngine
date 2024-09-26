@@ -3,7 +3,7 @@
 #include "./../../utils/defs.hpp"
 #include "./../../utils/app.hpp"
 #include <SDL2/SDL.h>
-
+#include <unordered_map>
 #include <iostream>
 using namespace std;
 
@@ -15,8 +15,8 @@ public:
     Timeline *inputSubsystemTimeline;
 
     InputSubsystem(Timeline *inputSubsystemTimeline);
-    void doInput(std::vector<Entity> &E);
-    virtual void customInput(std::vector<Entity> &E){};
+    void doInput(std::unordered_map<int, Entity*> &entity_map);
+    virtual void customInput(std::unordered_map<int, Entity*> &entity_map){};
 };
 
 // Abstract class for modular input handling

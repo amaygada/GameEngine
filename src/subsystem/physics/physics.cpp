@@ -4,15 +4,16 @@ PhysicsSubsystem::PhysicsSubsystem(Timeline *physicsTimeline) {
     this->physicsSubsystemTimeline = physicsTimeline;
 }
 
-void PhysicsSubsystem::doPhysics(std::vector<Entity> &E) {
-    for (auto &entity : E) {
-        if (entity.physicsHandler != nullptr){
-            if (entity.physicsHandler->input_allowed) entity.physicsHandler->handleInput(&entity);
-            else entity.physicsHandler->updatePhysics(&entity, 0, 0, 0, PHYS_GRAVITY_CONSTANT, -1);
+void PhysicsSubsystem::doPhysics(unordered_map<int, Entity*> &entity_map) {
+    for (const auto pair : entity_map) {
+        Entity* entity = pair.second;
+        if (entity->physicsHandler != nullptr){
+            if (entity->physicsHandler->input_allowed) entity->physicsHandler->handleInput(entity);
+            else entity->physicsHandler->updatePhysics(entity, 0, 0, 0, PHYS_GRAVITY_CONSTANT, -1);
         }
     }
 
-    this->customPhysics(E);
+    this->customPhysics(entity_map);
 }
 
 ModularPhysicsHandler::ModularPhysicsHandler(bool input_allowed) {

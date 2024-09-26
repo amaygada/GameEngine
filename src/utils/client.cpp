@@ -115,6 +115,6 @@ void Client::receiveEntityUpdates() {
 }
 
 // Getter for entity_map
-unordered_map<int, Entity*> Client::getEntityMap() {
+unordered_map<int, Entity*>& Client::getEntityMap() {
     return entityMap;
 }

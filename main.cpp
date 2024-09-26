@@ -33,8 +33,10 @@ int main(int argc, char *argv[]) {
         createEntities(E);  
 
         // Initialize the client
-        Client client(E[1]);
-        client.performHandshake(); // Performing a handshake with the server
+        Client* client = nullptr;
+        client = new Client(E[1]);
+        client->performHandshake(); // Performing a handshake with the server
+        //std::unordered_map<int, Entity*> entity_map = client->getEntityMap();
 
         // Main game loop for client
         int64_t last_render_time = globalTimeline->getTime();
@@ -47,17 +49,17 @@ int main(int argc, char *argv[]) {
 
             renderer->prepareScene();
 
-            //inputSubsystem->doInput(E);
+            inputSubsystem->doInput(client->getEntityMap());
 
             // Client-server communication
-            client.sendEntityUpdate();       // Client sends its entity update to the server
-            client.receiveEntityUpdates();  // Client receives entity updates from the server
+            client->sendEntityUpdate();       // Client sends its entity update to the server
+            client->receiveEntityUpdates();  // Client receives entity updates from the server
 
-            //physicsSubsystem->doPhysics(E);
-            //collisionSubsystem->doCollision(E);
+            physicsSubsystem->doPhysics(client->getEntityMap());
+            collisionSubsystem->doCollision(client->getEntityMap());
             //animationSubsystem->doAnimation(E);
 
-            renderer->presentScene(client.getEntityMap());
+            renderer->presentScene(client->getEntityMap());
         }
 
         renderer->cleanup();
@@ -68,30 +70,23 @@ int main(int argc, char *argv[]) {
 
 void createEntities(std::vector<Entity*>& E) {
     // Create entities for the game
-    SDL_Color shapeColor5 = {0, 0, 255, 255};  // Blue color
-    Entity* shape5 = new Entity(300, 300, 100, 100, shapeColor5);
-    shape5->physicsHandler = new DefaultMovementPhysicsHandler(true);
-    E.push_back(shape5);  // Push the dynamically allocated entity
+    SDL_Color shapeColor1 = {0, 0, 255, 255};  // Blue color
+    Entity* shape1 = new Entity(300, 300, 100, 100, shapeColor1);
+    shape1->physicsHandler = new DefaultMovementPhysicsHandler(true);
+    E.push_back(shape1);  // Push the dynamically allocated entity
 
     // Create entities for the game
-    SDL_Color shapeColor6 = {255, 0, 255, 255};  // Red color
-    Entity* shape6 = new Entity(500, 500, 150, 150, shapeColor6);
-    shape5->physicsHandler = new DefaultMovementPhysicsHandler(true);
-    E.push_back(shape6);  // Push the dynamically allocated entity
+    SDL_Color shapeColor2 = {255, 0, 255, 255};  // Red color
+    Entity* shape2 = new Entity(500, 500, 150, 150, shapeColor2);
+    shape2->physicsHandler = new DefaultMovementPhysicsHandler(true);
+    E.push_back(shape2);  // Push the dynamically allocated entity
 
 
 
     // Initialize pattern-following shape
-    SDL_Color shapeColor3 = {255, 255, 0, 255};  // Yellow color
-    Entity shape3(10, 10, 100, 100, shapeColor3);
-    std::vector<SDL_Rect> shape3Path = {
-        {SCREEN_WIDTH/3, 10, 1, 1},
-        {SCREEN_WIDTH/2, 10, 1, 1},
-        {SCREEN_WIDTH-100, 10, 1, 1},
-        {SCREEN_WIDTH/2, 10, 1, 1},
-        {SCREEN_WIDTH/3, 10, 1, 1},
-        {10, 10, 1, 1}
-    };
-    shape3.patternHandler = new DefaultPatternHandler(shape3Path);
-    E.push_back(&shape3);
+    SDL_Color shapeColor3 = {255, 255, 0, 255};  // Red color
+    Entity* shape3 = new Entity(700, 700, 150, 150, shapeColor3);
+    //shape2->physicsHandler = new DefaultMovementPhysicsHandler(true);
+    //shape3.patternHandler = new DefaultPatternHandler(shape3Path);
+    E.push_back(shape3);  // Push the dynamically allocated entity
 }
