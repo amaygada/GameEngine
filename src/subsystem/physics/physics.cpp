@@ -5,7 +5,10 @@ PhysicsSubsystem::PhysicsSubsystem(Timeline *physicsTimeline) {
 }
 
 void PhysicsSubsystem::doPhysics(vector<Entity*>& E) {
-
+    if(this->start_time == -1) this->start_time = physicsSubsystemTimeline->getTime();
+    int64_t currentTime = physicsSubsystemTimeline->getTime();
+    if (currentTime - this->start_time < 1) return;
+    this->start_time = currentTime;
 
     for (Entity *entity : E) {
 

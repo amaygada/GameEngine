@@ -9,12 +9,13 @@ Timeline *globalTimeline = new Timeline();
 Timeline *gameTimeline = new Timeline(globalTimeline, 1E9/GAMETIME_FREQ);
 
 // ENGINE SUBSYSTEM TIMELINES
-Timeline *inputSubsystemTimeline = new Timeline(globalTimeline, 1e8);
-Timeline *physicsSubsystemTimeline = new Timeline(globalTimeline, 1e9/GAMETIME_FREQ);
-Timeline *collisionSubsystemTimeline = new Timeline(globalTimeline, 1e9/GAMETIME_FREQ);
+Timeline *inputSubsystemTimeline = new Timeline(globalTimeline, 1e9/INPUT_SUBSYSTEM_FREQ);
+Timeline *physicsSubsystemTimeline = new Timeline(globalTimeline, 1e9/PHYSICS_SUBSYSTEM_FREQ);
+Timeline *collisionSubsystemTimeline = new Timeline(globalTimeline, 1e9/COLLISION_SUBSYSTEM_FREQ);
+Timeline *animationSubsystemTimeline = new Timeline(globalTimeline, 1e9/ANIMATION_SUBSYSTEM_FREQ);
 
 // Engine Subsystem objects
 InputSubsystem *inputSubsystem = new InputSubsystem(inputSubsystemTimeline);
 PhysicsSubsystem *physicsSubsystem = new PhysicsSubsystem(physicsSubsystemTimeline);
 CollisionSubsystem *collisionSubsystem = new CollisionSubsystem(collisionSubsystemTimeline);
-AnimationSubsystem *animationSubsystem = new AnimationSubsystem(gameTimeline);
+AnimationSubsystem *animationSubsystem = new AnimationSubsystem(animationSubsystemTimeline);

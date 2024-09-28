@@ -8,9 +8,11 @@ class Entity; // Forward declaration due to circular dependency
 class AnimationSubsystem {
     public:
         Timeline *animationSubsystemTimeline;
+        int64_t start_time = -1;
+        
         AnimationSubsystem(Timeline *animationTimeline);
-        void doAnimation(std::vector<Entity> &E);
-        void customAnimation(std::vector<Entity> &E){};
+        void doAnimation(std::vector<Entity*> &E);
+        void customAnimation(std::vector<Entity*> &E){};
 };
 
 // Abstract class for modular entity pattern handling

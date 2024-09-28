@@ -5,6 +5,13 @@ CollisionSubsystem::CollisionSubsystem(Timeline *collisionTimeline) {
 }
 
 void CollisionSubsystem::doCollision(std::unordered_map<int, std::vector<Entity *>> &entity_map) {
+    if(this->start_time == -1) {
+        this->start_time = collisionSubsystemTimeline->getTime();
+    }
+    int64_t currentTime = collisionSubsystemTimeline->getTime();
+    if (currentTime - this->start_time < 1) return;
+    this->start_time = currentTime;
+    
     // Use two iterators to compare each entity with the others
     for (auto it1 = entity_map.begin(); it1 != entity_map.end(); ++it1) {
         for (auto it2 = std::next(it1); it2 != entity_map.end(); ++it2) {
@@ -18,8 +25,7 @@ void CollisionSubsystem::doCollision(std::unordered_map<int, std::vector<Entity 
 
                     if (e1->checkCollision(*e2)) {
 
-                        // std::cout << "Collision detected between Entity " << it1->first << " and Entity " << it2->first << std::endl;
-
+                        std::cout << "Collision detected between Entity " << it1->first << " and Entity " << it2->first << std::endl;
                     }
 
                 }

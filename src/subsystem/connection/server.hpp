@@ -19,7 +19,6 @@ private:
     zmq::socket_t pub_sub;
     zmq::socket_t push_pull;
     std::mutex mutex;
-    std::unordered_map<int, std::vector<Entity *>> entityMap;
     int id_counter = 0;
     Serializer serializer;
     MessageHandler messageHandler;
@@ -28,6 +27,8 @@ private:
     int64_t broadcast_start_time = -1;
 
 public:
+    std::unordered_map<int, std::vector<Entity *>> entityMap;
+
     Server();
     void run();
     void handleRequest(string message);
@@ -40,9 +41,3 @@ public:
 };
 
 extern Timeline *globalTimeline;
-extern Timeline *gameTimeline;
-
-extern InputSubsystem *inputSubsystem;
-extern PhysicsSubsystem *physicsSubsystem;
-extern CollisionSubsystem *collisionSubsystem;
-extern AnimationSubsystem *animationSubsystem;

@@ -42,6 +42,9 @@ void Client::receiveEntityUpdates(){
     if(broadcast_data == "") return;
     std::istringstream iss(broadcast_data);
     std::string entity_update;
+    vector<Entity*> temp = entityMap[id];
+    entityMap.clear();
+    entityMap[id] = temp;
     while (std::getline(iss, entity_update, ';')) {
         auto msg = messageHandler.parseMessage(entity_update);
         int client_id;
@@ -49,7 +52,7 @@ void Client::receiveEntityUpdates(){
         sscanf(msg.second.c_str(), "ClientID:%d Entity:%255[^\n]", &client_id, &entity_data);
         Entity *entity = serializer.deserializeEntity(entity_data);
         if(client_id == id) continue;
-        entityMap[client_id] = {entity};
+        entityMap[client_id].push_back(entity);
     }
 }
 

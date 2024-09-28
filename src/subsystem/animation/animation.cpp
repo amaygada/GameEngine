@@ -4,10 +4,15 @@ AnimationSubsystem::AnimationSubsystem(Timeline *animationTimeline) {
     this->animationSubsystemTimeline = animationTimeline;
 }
 
-void AnimationSubsystem::doAnimation(std::vector<Entity> &E) {
-    for (Entity &entity : E) {
-        if (entity.patternHandler != nullptr) {
-            entity.patternHandler->moveToPath(&entity, 5);
+void AnimationSubsystem::doAnimation(vector<Entity*> &E) {
+    if(this->start_time == -1) this->start_time = animationSubsystemTimeline->getTime();
+    int64_t currentTime = animationSubsystemTimeline->getTime();
+    if (currentTime - this->start_time < 1) return;
+    this->start_time = currentTime;
+
+    for (Entity *entity : E) {
+        if (entity->patternHandler != nullptr) {
+            entity->patternHandler->moveToPath(entity, 5);
         }
     }
 

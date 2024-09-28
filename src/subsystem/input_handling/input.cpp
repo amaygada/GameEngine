@@ -14,7 +14,12 @@ InputSubsystem::InputSubsystem(Timeline *inputSubsystemTimeline) {
     }
 }
 
-void InputSubsystem::doInput(vector<Entity*>& E) {
+void InputSubsystem::doInput(vector<Entity*>& E) {\
+    if(this->start_time == -1) this->start_time = inputSubsystemTimeline->getTime();
+    int64_t currentTime = inputSubsystemTimeline->getTime();
+    if (currentTime - this->start_time < 1) return;
+    this->start_time = currentTime;
+
     const Uint8 *state = SDL_GetKeyboardState(NULL);
 
     if (state[SDL_SCANCODE_ESCAPE]){

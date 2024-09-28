@@ -72,11 +72,6 @@ void Server::run(){
     req_rep_thread.detach();
     push_pull_thread.detach();
     pub_sub_thread.detach();
-
-    while(1){
-        std::this_thread::sleep_for(std::chrono::milliseconds(16));
-        physicsSubsystem->doPhysics(entityMap[-1]);
-    }
 }
 
 

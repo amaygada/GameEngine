@@ -9,6 +9,8 @@ class Entity; // Forward declaration due to circular dependency
 class PhysicsSubsystem{
     public:
         Timeline *physicsSubsystemTimeline;
+        int64_t start_time = -1;
+        
         PhysicsSubsystem(Timeline *physicsTimeline);
         void doPhysics(std::vector<Entity*>& E);
         virtual void customPhysics(std::vector<Entity*>& E){};

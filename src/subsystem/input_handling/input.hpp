@@ -13,6 +13,7 @@ class InputSubsystem {
 public:
     int PState[512];
     Timeline *inputSubsystemTimeline;
+    int64_t start_time = -1;
 
     InputSubsystem(Timeline *inputSubsystemTimeline);
     void doInput(vector<Entity*>& E);
