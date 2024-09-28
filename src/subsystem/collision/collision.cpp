@@ -32,5 +32,3 @@ void CollisionSubsystem::doCollision(std::unordered_map<int, std::vector<Entity 
 
     this->customCollision(entity_map);
 }
-
-

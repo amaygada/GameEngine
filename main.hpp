@@ -5,11 +5,11 @@
 #include "src/subsystem/physics/physics.hpp"
 #include "src/subsystem/rendering/render.hpp"
 #include "src/subsystem/collision/collision.hpp"
-// #include "src/subsystem/animation/animation.hpp"
+#include "src/subsystem/animation/animation.hpp"
 #include "src/utils/timer.hpp"
-// #include "src/utils/serverClient.hpp"
-#include "src/utils/server.hpp"
-#include "src/utils/client.hpp"
+
+#include "src/subsystem/connection/server.hpp"
+#include "src/subsystem/connection/client.hpp"
 #include <memory>
 
 // window context

@@ -14,7 +14,7 @@ InputSubsystem::InputSubsystem(Timeline *inputSubsystemTimeline) {
     }
 }
 
-void InputSubsystem::doInput(unordered_map<int, std::vector<Entity *>> &entity_map) {
+void InputSubsystem::doInput(vector<Entity*>& E) {
     const Uint8 *state = SDL_GetKeyboardState(NULL);
 
     if (state[SDL_SCANCODE_ESCAPE]){
@@ -34,7 +34,7 @@ void InputSubsystem::doInput(unordered_map<int, std::vector<Entity *>> &entity_m
 
     }
 
-    this->customInput(entity_map);
+    this->customInput(E);
 
     for (int i = 0; i < 512; i++) {
         this->PState[i] = state[i];

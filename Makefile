@@ -17,11 +17,14 @@ SRC = main.cpp \
 	$(SUBSYSTEM)/physics/physics.cpp \
 	$(SUBSYSTEM)/animation/animation.cpp \
 	$(SUBSYSTEM)/collision/collision.cpp \
+	$(SUBSYSTEM)/connection/client.cpp \
+	$(SUBSYSTEM)/connection/server.cpp \
+	$(SUBSYSTEM)/connection/message.cpp \
 	$(UTILS)/app.cpp \
 	$(UTILS)/entity.cpp \
 	$(UTILS)/timer.cpp \
-	$(UTILS)/server.cpp \
-	$(UTILS)/client.cpp \
+	# $(UTILS)/server.cpp \
+	# $(UTILS)/client.cpp \
 
 # Object files
 OBJ = $(SRC:.cpp=.o)

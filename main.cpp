@@ -4,56 +4,36 @@
 #include <thread>
 #include <map>
 
-// Function to create entities and add them to the entity vector
-void createEntities(std::vector<Entity*>& E);
+void createClientEntities(std::vector<Entity*>& E);
 
-int main(int argc, char *argv[]) {
-
+int main(int argc, char *argv[]){
     bool isServer = (argc > 1 && std::string(argv[1]) == "server");
 
-    // Global vector to hold all entities
+    // a list of entities controlled by the process using it
     vector<Entity*> E;
 
-    // Initialize either server or client
-    Server* server = nullptr;
-
-    // Server setup - headless mode
-    if (isServer) {
-        server = new Server();  // Initialize the server with the entity vector
-        // std::cout << "Server started" << std::endl;
-
-        // Create entities for the server
+    if(isServer){
         SDL_Color shapeColor1 = {255, 0, 0, 255};  // Red color
         Entity* shape1 = new Entity(800, 400, 50, 200, shapeColor1);
         shape1->physicsHandler = new DefaultGravityPhysicsHandler(false);
         E.push_back(shape1);  // Push the dynamically allocated entity
-
-        SDL_Color shapeColor2 = {255, 255, 0, 255};  // Yellow color
-        Entity* shape2 = new Entity(400, 500, 75, 75, shapeColor2);
-        // TODO give it a pattern handler to make it follow a pattern
-        E.push_back(shape2);  // Push the dynamically allocated entity
-
-        server->addEntities(E);
-
-        server->run(); // Server runs in a loop handling multiple clients
-    }
-    else { // Client setup
         
-        // Initialize the application (SDL subsystems, renderer, etc.)
+        Server *server = new Server();
+        server->addEntities(E);
+        server->run();
+    } else {
+        // create entities
+        createClientEntities(E);
+
+        Client *client = new Client();
+        
+        // perform handshake
+        client->performHandshake(E);
+
         renderer->init("Game");
-
-        // Call the function to create entities
-        createEntities(E);
-
-        // Initialize the client
-        Client* client = nullptr;
-        client = new Client(E[0]); // TODO CHANGE THIS TO USE THE COMMAND-LINE ARGUMENT INSTEAD OF A HARD-CODED VALUE. Even better, let's just make this dynamic for any number of clients if we can
-        client->performHandshake(); // Performing a handshake with the server
-        //std::unordered_map<int, Entity*> entity_map = client->getEntityMap();
 
         // Main game loop for client
         int64_t last_render_time = globalTimeline->getTime();
-        // std::cout << last_render_time << std::endl;
         while(true) {
             int64_t frame_delta = globalTimeline->getTime() - last_render_time;
 
@@ -62,13 +42,13 @@ int main(int argc, char *argv[]) {
 
             renderer->prepareScene();
 
-            inputSubsystem->doInput(client->getEntityMap());
+            inputSubsystem->doInput(client->getEntityMap()[client->id]);
 
             // Client-server communication
             client->sendEntityUpdate();       // Client sends its entity update to the server
             client->receiveEntityUpdates();  // Client receives entity updates from the server
 
-            physicsSubsystem->doPhysics(client->getEntityMap());
+            physicsSubsystem->doPhysics(client->getEntityMap()[client->id]);
             collisionSubsystem->doCollision(client->getEntityMap());
             //animationSubsystem->doAnimation(E);
 
@@ -81,7 +61,7 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-void createEntities(std::vector<Entity*>& E) {
+void createClientEntities(std::vector<Entity*>& E) {
 
     // Create entities for the game
     SDL_Color shapeColor1 = {0, 0, 255, 255};  // Blue color
