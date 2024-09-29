@@ -86,8 +86,12 @@ void run_client_server(bool isServer) {
 }
 
 int main(int argc, char *argv[]){
+    if(argc > 1 && std::string(argv[1]) == "pp") {
+        std::cout << "Run peer to peer" << std::endl;
+        return 0;
+    }
     bool isServer = (argc > 1 && std::string(argv[1]) == "server");
-
+    run_client_server(isServer);
     
 
     return 0;
