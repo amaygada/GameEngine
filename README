@@ -1,0 +1,8 @@
+To compile: 
+-   From this project's root folder, run: "make all"
+
+To run server:
+-   From this project's root folder, run: "./main server"
+
+To run any number of clients:
+-   From this project's root folder, run: "./main"
