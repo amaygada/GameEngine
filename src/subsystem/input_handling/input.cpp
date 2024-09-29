@@ -39,6 +39,16 @@ void InputSubsystem::doInput(vector<Entity*>& E) {\
 
     }
 
+    if (state[SDL_SCANCODE_J]) { // 0.5 speed
+        gameTimeline->changeTic(1E9/GAMETIME_FREQ * 2.0);
+    }
+    else if (state[SDL_SCANCODE_K]) { // 1.0 speed (default speed)
+        gameTimeline->changeTic(1E9/GAMETIME_FREQ);
+    }
+    else if (state[SDL_SCANCODE_L]) { // 2.0 speed
+        gameTimeline->changeTic(1E9/GAMETIME_FREQ * 0.5);
+    }
+
     this->customInput(E);
 
     for (int i = 0; i < 512; i++) {
