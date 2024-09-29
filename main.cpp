@@ -6,9 +6,7 @@
 
 void createClientEntities(std::vector<Entity*>& E);
 
-int main(int argc, char *argv[]){
-    bool isServer = (argc > 1 && std::string(argv[1]) == "server");
-
+void run_client_server(bool isServer) {
     // a list of entities controlled by the process using it
     vector<Entity*> E;
 
@@ -71,25 +69,26 @@ int main(int argc, char *argv[]){
             renderer->prepareScene();
 
             std::thread input_thread(&InputSubsystem::doInput, inputSubsystem, std::ref(client->getEntityMap()[client->id]));
-
             std::thread physics_thread(&PhysicsSubsystem::doPhysics, physicsSubsystem, std::ref(client->getEntityMap()[client->id]));
-
-            // inputSubsystem->doInput(client->getEntityMap()[client->id]);
+            
+            input_thread.join();
+            physics_thread.join();
 
             // Client-server communication
             client->sendEntityUpdate();       // Client sends its entity update to the server
             client->receiveEntityUpdates();  // Client receives entity updates from the server
-
-            // physicsSubsystem->doPhysics(client->getEntityMap()[client->id]);
-
+            
             renderer->presentScene(client->getEntityMap());
-
-            input_thread.join();
-            physics_thread.join();
         }
 
         renderer->cleanup();
     }
+}
+
+int main(int argc, char *argv[]){
+    bool isServer = (argc > 1 && std::string(argv[1]) == "server");
+
+    
 
     return 0;
 }

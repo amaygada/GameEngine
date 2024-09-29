@@ -128,6 +128,7 @@ void DefaultMovementPhysicsHandler::updatePhysics(Entity *entity, double velocit
 
     int locDifference = direction * (to_be_loc);
 
+    entity_mutex.lock();
     if (entity->x + entity->w + locDifference >= SCREEN_WIDTH) {
         entity->x = SCREEN_WIDTH - entity->w;
     }else if(entity->x + locDifference <= 0){
@@ -146,5 +147,6 @@ void DefaultMovementPhysicsHandler::updatePhysics(Entity *entity, double velocit
     }else {
         entity->y += locDifference;
     }
+    entity_mutex.unlock();
 
 }

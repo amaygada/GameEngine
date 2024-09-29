@@ -26,3 +26,5 @@ extern InputSubsystem *inputSubsystem;
 extern PhysicsSubsystem *physicsSubsystem;
 extern AnimationSubsystem *animationSubsystem;
 extern CollisionSubsystem *collisionSubsystem;
+
+extern std::mutex entity_mutex;

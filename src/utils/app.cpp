@@ -19,3 +19,6 @@ InputSubsystem *inputSubsystem = new InputSubsystem(inputSubsystemTimeline);
 PhysicsSubsystem *physicsSubsystem = new PhysicsSubsystem(physicsSubsystemTimeline);
 CollisionSubsystem *collisionSubsystem = new CollisionSubsystem(collisionSubsystemTimeline);
 AnimationSubsystem *animationSubsystem = new AnimationSubsystem(animationSubsystemTimeline);
+
+// Mutex to lock entity updates
+std::mutex entity_mutex;

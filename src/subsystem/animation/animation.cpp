@@ -89,7 +89,8 @@ void DefaultPatternHandler::moveToPath(Entity *entity, int factor) {
     else if (yDirection < 0) {
         futureY -= timeDiff*factor;
     }
-
+    entity_mutex.lock();
     entity->x = futureX;
     entity->y = futureY;
+    entity_mutex.unlock();
 }

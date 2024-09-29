@@ -46,3 +46,4 @@ class DefaultMovementPhysicsHandler : public ModularPhysicsHandler{
 };
 
 extern Timeline *gameTimeline;
+extern std::mutex entity_mutex;
