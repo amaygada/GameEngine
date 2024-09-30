@@ -21,6 +21,7 @@ string MessageHandler::receiveMessage(zmq::socket_t &sock, zmq::recv_flags flags
         string message = string(static_cast<char*>(reply.data()), reply.size());
         return message;
     }
+    return "";
 }
 
 string MessageHandler::receiveMessage(zmq::socket_t &sock) {
@@ -29,6 +30,7 @@ string MessageHandler::receiveMessage(zmq::socket_t &sock) {
         string message = string(static_cast<char*>(reply.data()), reply.size());
         return message;
     }
+    return "";
 }
 
 string MessageHandler::createMessage(int type, string data) {

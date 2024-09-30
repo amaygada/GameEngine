@@ -43,16 +43,11 @@ void Renderer::prepareScene() {
 void Renderer::presentScene(const unordered_map<int, std::vector<Entity *>> &entity_map) {
     // Draw the entities from the entity_map
     for (const auto pair : entity_map) {
-
         std::vector<Entity *> entities = pair.second;
         for (Entity *entity : entities) {
-
             entity->draw(app->renderer);
-
         }
-
     }
-
     SDL_RenderPresent(app->renderer);  // Present the final rendered scene
 }
 

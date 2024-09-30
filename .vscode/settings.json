@@ -62,6 +62,7 @@
         "typeinfo": "cpp",
         "__nullptr": "cpp",
         "iomanip": "cpp",
-        "sstream": "cpp"
+        "sstream": "cpp",
+        "__hash_table": "cpp"
     }
 }

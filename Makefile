@@ -19,6 +19,7 @@ SRC = main.cpp \
 	$(SUBSYSTEM)/collision/collision.cpp \
 	$(SUBSYSTEM)/connection/client.cpp \
 	$(SUBSYSTEM)/connection/server.cpp \
+	$(SUBSYSTEM)/connection/p2pclient.cpp \
 	$(SUBSYSTEM)/connection/message.cpp \
 	$(UTILS)/app.cpp \
 	$(UTILS)/entity.cpp \

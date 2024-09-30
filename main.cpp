@@ -5,6 +5,7 @@
 #include <map>
 
 void createClientEntities(std::vector<Entity*>& E);
+void createPlatformEntities(std::vector<Entity*>& E);
 
 void run_client_server(bool isServer) {
     // a list of entities controlled by the process using it
@@ -85,15 +86,67 @@ void run_client_server(bool isServer) {
     }
 }
 
+void run_p2p() {
+
+    P2PClient *client = new P2PClient();
+
+    vector<Entity*> E;
+
+    client->expose_port_and_connect();
+
+    client->request_id();
+
+    client->announce_new_peer();
+
+    // create entities
+    createClientEntities(E);
+    
+    // platform entity
+    SDL_Color shapeColor3 = {255, 255, 0, 255};  // Yellow color
+    Entity shape3( 10, 10, 100, 100, shapeColor3);
+    std::vector<SDL_Rect> shape3Path = {};
+    shape3Path.push_back({SCREEN_WIDTH-100,10, 1, 1});
+    shape3Path.push_back({10, 10, 1, 1});
+    shape3.patternHandler = new DefaultPatternHandler(shape3Path);
+
+    vector<Entity*> temp;
+    temp.push_back(E[client->get_id()]);
+    client->entityMap[client->get_id()] = temp;
+    client->entityMap[-1].push_back(&shape3);
+
+    renderer->init("Game");
+
+    // Main game loop for client
+    int64_t last_render_time = globalTimeline->getTime();
+    while(true) {
+        int64_t frame_delta = globalTimeline->getTime() - last_render_time;
+
+        if (frame_delta < (1e9/RENDER_FPS - (2*1e6))) SDL_Delay((1e9/RENDER_FPS - frame_delta)*1e-6);
+        last_render_time = globalTimeline->getTime();
+
+        renderer->prepareScene();
+
+        inputSubsystem->doInput(client->entityMap[client->get_id()]);
+        physicsSubsystem->doPhysics(client->entityMap[client->get_id()]);
+        animationSubsystem->doAnimation(client->entityMap[-1]);
+        collisionSubsystem->doCollision(client->entityMap);
+
+        client->publish_entity_positions();       // Client sends its entity update to the server
+        client->receive_entity_positions();  // Client receives entity updates from the server
+
+        renderer->presentScene(client->get_entity_map());
+    }
+
+    renderer->cleanup();
+}
+
 int main(int argc, char *argv[]){
     if(argc > 1 && std::string(argv[1]) == "pp") {
-        std::cout << "Run peer to peer" << std::endl;
-        return 0;
+        run_p2p();
+    }else{
+        bool isServer = (argc > 1 && std::string(argv[1]) == "server");
+        run_client_server(isServer);
     }
-    bool isServer = (argc > 1 && std::string(argv[1]) == "server");
-    run_client_server(isServer);
-    
-
     return 0;
 }
 
@@ -116,4 +169,18 @@ void createClientEntities(std::vector<Entity*>& E) {
     Entity* shape3 = new Entity(700, 700, 150, 150, shapeColor3);
     shape3->physicsHandler = new DefaultMovementPhysicsHandler(true);
     E.push_back(shape3);  // Push the dynamically allocated entity
+}
+
+void createPlatformEntities(std::vector<Entity*>& PE) {
+    SDL_Color shapeColor3 = {255, 255, 0, 255};  // Yellow color
+    Entity shape3( 10, 10, 100, 100, shapeColor3);
+    std::vector<SDL_Rect> shape3Path = {};
+    shape3Path.push_back({SCREEN_WIDTH/3, 10, 1, 1});
+    shape3Path.push_back({SCREEN_WIDTH/2, 10, 1, 1});
+    shape3Path.push_back({SCREEN_WIDTH-100,10, 1, 1});
+    shape3Path.push_back({SCREEN_WIDTH/2, 10, 1, 1});
+    shape3Path.push_back({SCREEN_WIDTH/3, 10, 1, 1});
+    shape3Path.push_back({10, 10, 1, 1});
+    shape3.patternHandler = new DefaultPatternHandler(shape3Path);
+    PE.push_back(&shape3);
 }
