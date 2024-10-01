@@ -1,8 +1,35 @@
-To compile: 
--   From this project's root folder, run: "make all"
+# Step 1
+- Add or replace respective main.cpp/main.hpp file in the root of the project.
+- the engine won't compile without it.
 
-To run server:
--   From this project's root folder, run: "./main server"
+# Compile
+- to compile run 'make'
+- to remove object files run 'make clean'
 
-To run any number of clients:
--   From this project's root folder, run: "./main"
+# Client Server
+- To start the server run './main server'
+- To start a client run './main client'
+
+Note that main.cpp allows only 3 clients right now (since we don't randomize a new client position and select from an existing list)
+
+# P2P
+- add peers by running './main pp'
+
+Again only 3 peers will be able to run due to the above mentioned reason.
+
+# Options
+
+### To pause or resume the game
+- press 'space bar'
+
+### To change the tic size to run the game slower
+- Press “L”
+
+### To keep the tic size to the frequency defined in defs.hpp
+- Press “K”
+
+### To change the tic size to run the game faster
+- Press “J”
+
+### To change game or subsystem frequencies 
+- edit 'defs.hpp'
