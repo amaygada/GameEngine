@@ -40,14 +40,19 @@ void Renderer::prepareScene() {
 
 // Function to present the scene
 // attach timer here
-void Renderer::presentScene(const unordered_map<int, std::vector<Entity *>> &entity_map) {
+void Renderer::presentScene(const unordered_map<int, std::vector<Entity *>> &entity_map, int client_id) {
     // Draw the entities from the entity_map
     for (const auto pair : entity_map) {
         std::vector<Entity *> entities = pair.second;
         for (Entity *entity : entities) {
-            entity->draw(app->renderer);
+            if(pair.first == client_id){
+                if(entity->renderingHandler != nullptr) entity->renderingHandler->renderEntity(entity);
+            }
+            else entity->draw(app->renderer);
+            // entity->draw(app->renderer);
         }
     }
+
     SDL_RenderPresent(app->renderer);  // Present the final rendered scene
 }
 
@@ -55,6 +60,14 @@ void Renderer::cleanup() {
     SDL_DestroyRenderer(app->renderer);
     SDL_DestroyWindow(app->window);
     SDL_Quit();
+}
+
+ModularRenderer::ModularRenderer() {
+    this->rendererTimeline = new Timeline(gameTimeline, 1);
+}
+
+void DefaultRenderer::renderEntity(Entity *entity) {
+    entity->draw(app->renderer);
 }
 
 Renderer *renderer;

@@ -5,6 +5,8 @@ Entity::Entity() : x(0), y(0), w(0), h(0), color({0, 0, 0, 255}) {
     inputHandler = nullptr;
     physicsHandler = nullptr;
     patternHandler = nullptr;
+    collisionHandler = nullptr;
+    renderingHandler = nullptr;
 }
 
 // Entity parametric constructor
@@ -12,6 +14,8 @@ Entity::Entity(int x, int y, int w, int h, SDL_Color color): x(x), y(y), w(w), h
     inputHandler = nullptr;
     physicsHandler = nullptr;
     patternHandler = nullptr;
+    collisionHandler = nullptr;
+    renderingHandler = nullptr;
 }
 
 // Draw an Entity

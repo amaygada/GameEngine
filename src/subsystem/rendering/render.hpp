@@ -20,7 +20,21 @@ class Renderer {
         void init(string windowName);
         void getWindowSize(int *window_width, int *window_height);
         void prepareScene(void);
-        void presentScene(const unordered_map<int, std::vector<Entity *>> &entityMap);
+        void presentScene(const unordered_map<int, std::vector<Entity *>> &entityMap, int client_id);
         void cleanup();
         // ~Renderer();
+};
+
+class ModularRenderer {
+    public:
+        Timeline *rendererTimeline;
+        
+        ModularRenderer();
+        virtual void renderEntity(Entity *entity) = 0;
+        virtual ~ModularRenderer() = default;  
+};
+
+class DefaultRenderer : public ModularRenderer{
+    public:
+        void renderEntity(Entity *entity) override;
 };

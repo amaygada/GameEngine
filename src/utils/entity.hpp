@@ -3,6 +3,7 @@
 #include "./../subsystem/input_handling/input.hpp"
 #include "./../subsystem/physics/physics.hpp"
 #include "./../subsystem/animation/animation.hpp"
+#include "./../subsystem/collision/collision.hpp"
 
 #include <SDL2/SDL.h>
 #include <vector>
@@ -10,6 +11,8 @@
 class ModularInputHandler; // Forward declaration due to circular dependency
 class ModularPhysicsHandler; // Forward declaration due to circular dependency
 class ModularPatternHandler; // Forward declaration due to circular dependency
+class ModularCollisionHandler; // Forward declaration due to circular dependency
+class ModularRenderer; // Forward declaration due to circular dependency
 
 class Entity {
 public:
@@ -19,6 +22,8 @@ public:
     ModularInputHandler* inputHandler;
     ModularPhysicsHandler *physicsHandler;
     ModularPatternHandler *patternHandler;
+    ModularCollisionHandler *collisionHandler;
+    ModularRenderer *renderingHandler;
 
     // Default constructor
     Entity();

@@ -41,11 +41,11 @@ void run_client_server(bool isServer) {
 
             std::thread physics_thread(&PhysicsSubsystem::doPhysics, physicsSubsystem, std::ref(server->entityMap[-1]));
             std::thread animation_thread(&AnimationSubsystem::doAnimation, animationSubsystem, std::ref(server->entityMap[-1]));
-            std::thread collision_thread(&CollisionSubsystem::doCollision, collisionSubsystem, std::ref(server->entityMap));
+            // std::thread collision_thread(&CollisionSubsystem::doCollision, collisionSubsystem, std::ref(server->entityMap));
     
             physics_thread.join();
             animation_thread.join();
-            collision_thread.join();
+            // collision_thread.join();
         }
 
     } else {
@@ -69,17 +69,20 @@ void run_client_server(bool isServer) {
 
             renderer->prepareScene();
 
+            // collisionSubsystem->doCollision(client->getEntityMap()[client->id], client->getEntityMap());
+            std::thread collision_thread(&CollisionSubsystem::doCollision, collisionSubsystem, std::ref(client->getEntityMap()[client->id]), std::ref(client->getEntityMap()));
             std::thread input_thread(&InputSubsystem::doInput, inputSubsystem, std::ref(client->getEntityMap()[client->id]));
             std::thread physics_thread(&PhysicsSubsystem::doPhysics, physicsSubsystem, std::ref(client->getEntityMap()[client->id]));
             
             input_thread.join();
             physics_thread.join();
+            collision_thread.join();
 
             // Client-server communication
             client->sendEntityUpdate();       // Client sends its entity update to the server
             client->receiveEntityUpdates();  // Client receives entity updates from the server
             
-            renderer->presentScene(client->getEntityMap());
+            renderer->presentScene(client->getEntityMap(), client->id);
         }
 
         renderer->cleanup();
@@ -88,56 +91,56 @@ void run_client_server(bool isServer) {
 
 void run_p2p() {
 
-    P2PClient *client = new P2PClient();
+    // P2PClient *client = new P2PClient();
 
-    vector<Entity*> E;
+    // vector<Entity*> E;
 
-    client->expose_port_and_connect();
+    // client->expose_port_and_connect();
 
-    client->request_id();
+    // client->request_id();
 
-    client->announce_new_peer();
+    // client->announce_new_peer();
 
-    // create entities
-    createClientEntities(E);
+    // // create entities
+    // createClientEntities(E);
     
-    // platform entity
-    SDL_Color shapeColor3 = {255, 255, 0, 255};  // Yellow color
-    Entity shape3( 10, 10, 100, 100, shapeColor3);
-    std::vector<SDL_Rect> shape3Path = {};
-    shape3Path.push_back({SCREEN_WIDTH-100,10, 1, 1});
-    shape3Path.push_back({10, 10, 1, 1});
-    shape3.patternHandler = new DefaultPatternHandler(shape3Path);
+    // // platform entity
+    // SDL_Color shapeColor3 = {255, 255, 0, 255};  // Yellow color
+    // Entity shape3( 10, 10, 100, 100, shapeColor3);
+    // std::vector<SDL_Rect> shape3Path = {};
+    // shape3Path.push_back({SCREEN_WIDTH-100,10, 1, 1});
+    // shape3Path.push_back({10, 10, 1, 1});
+    // shape3.patternHandler = new DefaultPatternHandler(shape3Path);
 
-    vector<Entity*> temp;
-    temp.push_back(E[client->get_id()]);
-    client->entityMap[client->get_id()] = temp;
-    client->entityMap[-1].push_back(&shape3);
+    // vector<Entity*> temp;
+    // temp.push_back(E[client->get_id()]);
+    // client->entityMap[client->get_id()] = temp;
+    // client->entityMap[-1].push_back(&shape3);
 
-    renderer->init("Game");
+    // renderer->init("Game");
 
-    // Main game loop for client
-    int64_t last_render_time = globalTimeline->getTime();
-    while(true) {
-        int64_t frame_delta = globalTimeline->getTime() - last_render_time;
+    // // Main game loop for client
+    // int64_t last_render_time = globalTimeline->getTime();
+    // while(true) {
+    //     int64_t frame_delta = globalTimeline->getTime() - last_render_time;
 
-        if (frame_delta < (1e9/RENDER_FPS - (2*1e6))) SDL_Delay((1e9/RENDER_FPS - frame_delta)*1e-6);
-        last_render_time = globalTimeline->getTime();
+    //     if (frame_delta < (1e9/RENDER_FPS - (2*1e6))) SDL_Delay((1e9/RENDER_FPS - frame_delta)*1e-6);
+    //     last_render_time = globalTimeline->getTime();
 
-        renderer->prepareScene();
+    //     renderer->prepareScene();
 
-        inputSubsystem->doInput(client->entityMap[client->get_id()]);
-        physicsSubsystem->doPhysics(client->entityMap[client->get_id()]);
-        animationSubsystem->doAnimation(client->entityMap[-1]);
-        collisionSubsystem->doCollision(client->entityMap);
+    //     inputSubsystem->doInput(client->entityMap[client->get_id()]);
+    //     physicsSubsystem->doPhysics(client->entityMap[client->get_id()]);
+    //     animationSubsystem->doAnimation(client->entityMap[-1]);
+    //     collisionSubsystem->doCollision(client->entityMap);
 
-        client->publish_entity_positions();       // Client sends its entity update to the server
-        client->receive_entity_positions();  // Client receives entity updates from the server
+    //     client->publish_entity_positions();       // Client sends its entity update to the server
+    //     client->receive_entity_positions();  // Client receives entity updates from the server
 
-        renderer->presentScene(client->get_entity_map());
-    }
+    //     renderer->presentScene(client->get_entity_map());
+    // }
 
-    renderer->cleanup();
+    // renderer->cleanup();
 }
 
 int main(int argc, char *argv[]){
@@ -156,18 +159,24 @@ void createClientEntities(std::vector<Entity*>& E) {
     SDL_Color shapeColor1 = {0, 0, 255, 255};  // Blue color
     Entity* shape1 = new Entity(300, 300, 100, 100, shapeColor1);
     shape1->physicsHandler = new DefaultMovementPhysicsHandler(true);
+    shape1->collisionHandler = new DefaultCollisionHandler();
+    shape1->renderingHandler = new DefaultRenderer();
     E.push_back(shape1);  // Push the dynamically allocated entity
 
     // Create entities for the game
     SDL_Color shapeColor2 = {255, 0, 255, 255};  // Pink color
     Entity* shape2 = new Entity(500, 500, 150, 150, shapeColor2);
     shape2->physicsHandler = new DefaultMovementPhysicsHandler(true);
+    shape2->collisionHandler = new DefaultCollisionHandler();
+    shape2->renderingHandler = new DefaultRenderer();
     E.push_back(shape2);  // Push the dynamically allocated entity
 
     // Initialize pattern-following shape
     SDL_Color shapeColor3 = {255, 0, 0, 255};  // Red color
     Entity* shape3 = new Entity(700, 700, 150, 150, shapeColor3);
     shape3->physicsHandler = new DefaultMovementPhysicsHandler(true);
+    shape3->collisionHandler = new DefaultCollisionHandler();
+    shape3->renderingHandler = new DefaultRenderer();
     E.push_back(shape3);  // Push the dynamically allocated entity
 }
 
