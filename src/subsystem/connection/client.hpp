@@ -2,6 +2,7 @@
 #include <zmq.hpp>
 #include <iostream>
 #include <vector>
+#include <csignal>
 #include "message.hpp"
 #include "./../../utils/entity.hpp"
 
@@ -15,6 +16,9 @@ private:
     unordered_map<int, std::vector<Entity *>> entityMap;
     Serializer serializer;
     MessageHandler messageHandler;
+
+    static void uponTermination(int signal);
+    static Client *myself;
 
 public:
     int id;

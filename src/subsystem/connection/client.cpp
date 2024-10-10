@@ -1,5 +1,7 @@
 # include "client.hpp"
 
+Client *Client::myself = nullptr;
+
 Client::Client() : 
     context(1),
     req_rep(context, ZMQ_REQ),
@@ -11,6 +13,13 @@ Client::Client() :
         push_pull.connect("tcp://localhost:5556");
         pub_sub.connect("tcp://localhost:5557");
         pub_sub.set(zmq::sockopt::subscribe, ""); // Subscribe to all messages
+
+        myself = this;
+
+        struct sigaction a;
+        a.sa_handler = uponTermination;
+        sigaction(SIGINT, &a, nullptr);
+
     }
 
 void Client::performHandshake(vector<Entity*>& E){
@@ -19,14 +28,26 @@ void Client::performHandshake(vector<Entity*>& E){
     messageHandler.sendMessage(req_rep, message);
     string reply = messageHandler.receiveMessage(req_rep);
     auto msg = messageHandler.parseMessage(reply);
-    id = std::stoi(msg.second);
-    entity = E[id];
+    auto idIndex = msg.second.find(" ");
+    auto infoStr = msg.second.substr(0, idIndex);
+    // id = std::stoi(msg.second);
+    id = std::stoi(infoStr);
+    entity = E[0];
+    
+    infoStr = msg.second.substr(idIndex + 1);
+    auto xIndex = infoStr.find(" ");
+    auto x = infoStr.substr(0, xIndex);
+    infoStr = infoStr.substr(xIndex + 1);
+    auto y = infoStr;
+    entity->x = std::stoi(x);
+    entity->y = std::stoi(y);
+
     // send entity
     message = messageHandler.createMessage(2, "ClientID:"+msg.second+" Entity:"+serializer.serializeEntity(entity));
     messageHandler.sendMessage(req_rep, message);
     reply = messageHandler.receiveMessage(req_rep);
     // populate entity map
-    entityMap[id] = {E[id]};
+    entityMap[id] = {E[0]};
 }
 
 void Client::sendEntityUpdate(){
@@ -54,6 +75,21 @@ void Client::receiveEntityUpdates(){
         if(client_id == id) continue;
         entityMap[client_id].push_back(entity);
     }
+}
+
+void Client::uponTermination(int signal) {
+
+    if (myself && signal == SIGINT) {
+
+        string message = myself->messageHandler.createMessage(0, "ClientID:" + std::to_string(myself->id));
+        myself->messageHandler.sendMessage(myself->req_rep, message);
+
+        myself->messageHandler.receiveMessage(myself->req_rep);
+
+        exit(0);
+
+    }
+
 }
 
 // Getter for entity_map

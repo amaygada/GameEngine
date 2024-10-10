@@ -3,6 +3,7 @@
 #include <vector>
 #include <thread>
 #include <map>
+#include <random>
 
 void createClientEntities(std::vector<Entity*>& E);
 void createPlatformEntities(std::vector<Entity*>& E);
@@ -28,9 +29,20 @@ void run_client_server(bool isServer) {
         shape3Path.push_back({10, 10, 1, 1});
         shape3.patternHandler = new DefaultPatternHandler(shape3Path);
         E.push_back(&shape3);
+
+        vector<Entity *> spawnPoints = {};
+        SDL_Color spColor = {0, 0, 0, 0}; // Invisible
+
+        // First spawn point. With the current implementation entities will be defaulted to this spawn point upon initial connection. Any additional functionality regarding spawn points is to be left to individual game implementations
+        Entity *sp1 = new Entity(300, 300, 0, 0, spColor);
+        spawnPoints.push_back(sp1);
+
+        // Second spawn point
+        Entity *sp2 = new Entity(600, 300, 0, 0, spColor);
+        spawnPoints.push_back(sp2);
         
         Server *server = new Server();
-        server->addEntities(E);
+        server->addEntities(E, spawnPoints);
         server->run();
 
         int64_t last_render_time = globalTimeline->getTime();
@@ -153,31 +165,37 @@ int main(int argc, char *argv[]){
     return 0;
 }
 
+SDL_Color getRandColor() {
+
+    const int min = 0;
+    const int max = 255;
+    std::random_device rand;
+    std::mt19937 gen(rand());
+    std::uniform_int_distribution<> distr(min, max);
+
+    Uint8 r = distr(gen), g = distr(gen), b = distr(gen), a = 255;
+    while (r == BACKGROUND_COLOR_R && g == BACKGROUND_COLOR_G && b == BACKGROUND_COLOR_B) {
+
+        r = distr(gen);
+        g = distr(gen);
+        b = distr(gen);
+
+    }
+
+    return {r, g, b, a};
+
+}
+
 void createClientEntities(std::vector<Entity*>& E) {
 
-    // Create entities for the game
-    SDL_Color shapeColor1 = {0, 0, 255, 255};  // Blue color
-    Entity* shape1 = new Entity(300, 300, 100, 100, shapeColor1);
+    // Create client entity for the game
+    SDL_Color shapeColor1 = getRandColor();
+    Entity *shape1 = new Entity(-999, -999, 100, 100, shapeColor1);
     shape1->physicsHandler = new DefaultMovementPhysicsHandler(true);
     shape1->collisionHandler = new DefaultCollisionHandler();
     shape1->renderingHandler = new DefaultRenderer();
-    E.push_back(shape1);  // Push the dynamically allocated entity
+    E.push_back(shape1);
 
-    // Create entities for the game
-    SDL_Color shapeColor2 = {255, 0, 255, 255};  // Pink color
-    Entity* shape2 = new Entity(500, 500, 150, 150, shapeColor2);
-    shape2->physicsHandler = new DefaultMovementPhysicsHandler(true);
-    shape2->collisionHandler = new DefaultCollisionHandler();
-    shape2->renderingHandler = new DefaultRenderer();
-    E.push_back(shape2);  // Push the dynamically allocated entity
-
-    // Initialize pattern-following shape
-    SDL_Color shapeColor3 = {255, 0, 0, 255};  // Red color
-    Entity* shape3 = new Entity(700, 700, 150, 150, shapeColor3);
-    shape3->physicsHandler = new DefaultMovementPhysicsHandler(true);
-    shape3->collisionHandler = new DefaultCollisionHandler();
-    shape3->renderingHandler = new DefaultRenderer();
-    E.push_back(shape3);  // Push the dynamically allocated entity
 }
 
 void createPlatformEntities(std::vector<Entity*>& PE) {

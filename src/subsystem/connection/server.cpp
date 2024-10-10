@@ -80,15 +80,29 @@ void Server::handleRequest(string message){
     int type = msg.first;
     string data = msg.second;
 
+    // CLIENT DISCONNECT
+    if (type == 0) {
+
+        string reply = messageHandler.createMessage(0, "Goodbye");
+        messageHandler.sendMessage(req_rep, reply);
+
+        int client_id;
+        sscanf(data.c_str(), "ClientID:%d", &client_id);
+
+        auto it = entityMap.find(client_id);
+        entityMap.erase(it);
+
+    }
+
     // HANDSHAKE REQUEST
-    if( type == 1 ){
+    else if( type == 1 ){
         // get id in a thread safe manner
         mutex.lock();
         int id = id_counter++;
         mutex.unlock();
         // send id to client
-        string id_str = std::to_string(id);
-        string reply = messageHandler.createMessage(1, id_str);
+        string reply_str = std::to_string(id) + " " + std::to_string(spawnPoints[0]->x) + " " + std::to_string(spawnPoints[0]->y);
+        string reply = messageHandler.createMessage(1, reply_str);
         messageHandler.sendMessage(req_rep, reply);
     }
 
@@ -119,8 +133,14 @@ void Server::handleRequest(string message){
 
 }
 
-void Server::addEntities(std::vector<Entity*> E){
+void Server::addEntities(std::vector<Entity*> E, std::vector<Entity *> spawnPoints){
     for (Entity* entity : E) {
         entityMap[-1].push_back(entity);
+    }
+
+    for (Entity *sp : spawnPoints) {
+
+        this->spawnPoints.push_back(sp);
+
     }
 }
