@@ -36,11 +36,13 @@ void run_client_server(bool isServer) {
         // First spawn point. With the current implementation entities will be defaulted to this spawn point upon initial connection. Any additional functionality regarding spawn points is to be left to individual game implementations
         Entity *sp1 = new Entity(300, 300, 0, 0, spColor);
         spawnPoints.push_back(sp1);
+        E.push_back(sp1);
 
         // Second spawn point
         Entity *sp2 = new Entity(600, 300, 0, 0, spColor);
         spawnPoints.push_back(sp2);
-        
+        E.push_back(sp2);
+
         Server *server = new Server();
         server->addEntities(E, spawnPoints);
         server->run();
