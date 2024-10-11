@@ -28,7 +28,6 @@ private:
 
 public:
     std::unordered_map<int, std::vector<Entity *>> entityMap;
-    std::vector<Entity *> spawnPoints;
 
     Server();
     void run();
@@ -37,7 +36,7 @@ public:
     void handlePushPull();
     void handlePubSub();
     void broadcastEntityUpdates();
-    void addEntities(std::vector<Entity*> E, std::vector<Entity *> spawnPoints);
+    void addEntities(std::vector<Entity*> E);
     std::unordered_map<int, std::vector<Entity *>> getEntityMap();
 };
 

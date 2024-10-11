@@ -34,14 +34,6 @@ void Client::performHandshake(vector<Entity*>& E){
     id = std::stoi(infoStr);
     entity = E[0];
     
-    infoStr = msg.second.substr(idIndex + 1);
-    auto xIndex = infoStr.find(" ");
-    auto x = infoStr.substr(0, xIndex);
-    infoStr = infoStr.substr(xIndex + 1);
-    auto y = infoStr;
-    entity->x = std::stoi(x);
-    entity->y = std::stoi(y);
-
     // send entity
     message = messageHandler.createMessage(2, "ClientID:"+msg.second+" Entity:"+serializer.serializeEntity(entity));
     messageHandler.sendMessage(req_rep, message);

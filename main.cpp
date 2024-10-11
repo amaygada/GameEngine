@@ -30,21 +30,8 @@ void run_client_server(bool isServer) {
         shape3.patternHandler = new DefaultPatternHandler(shape3Path);
         E.push_back(&shape3);
 
-        vector<Entity *> spawnPoints = {};
-        SDL_Color spColor = {0, 0, 0, 0}; // Invisible
-
-        // First spawn point. With the current implementation entities will be defaulted to this spawn point upon initial connection. Any additional functionality regarding spawn points is to be left to individual game implementations
-        Entity *sp1 = new Entity(300, 300, 0, 0, spColor);
-        spawnPoints.push_back(sp1);
-        E.push_back(sp1);
-
-        // Second spawn point
-        Entity *sp2 = new Entity(600, 300, 0, 0, spColor);
-        spawnPoints.push_back(sp2);
-        E.push_back(sp2);
-
         Server *server = new Server();
-        server->addEntities(E, spawnPoints);
+        server->addEntities(E);
         server->run();
 
         int64_t last_render_time = globalTimeline->getTime();
@@ -192,7 +179,7 @@ void createClientEntities(std::vector<Entity*>& E) {
 
     // Create client entity for the game
     SDL_Color shapeColor1 = getRandColor();
-    Entity *shape1 = new Entity(-999, -999, 100, 100, shapeColor1);
+    Entity *shape1 = new Entity(300, 300, 100, 100, shapeColor1);
     shape1->physicsHandler = new DefaultMovementPhysicsHandler(true);
     shape1->collisionHandler = new DefaultCollisionHandler();
     shape1->renderingHandler = new DefaultRenderer();
