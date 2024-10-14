@@ -117,6 +117,14 @@ void Server::handleRequest(string message){
         mutex.unlock();
     }
 
+    else if( type == 4 ){
+        int client_id;
+        sscanf(data.c_str(), "ClientID:%d", &client_id);
+        mutex.lock();
+        entityMap.erase(client_id);
+        mutex.unlock();
+    }
+
 }
 
 void Server::addEntities(std::vector<Entity*> E){

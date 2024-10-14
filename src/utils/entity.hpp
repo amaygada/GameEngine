@@ -7,6 +7,8 @@
 
 #include <SDL2/SDL.h>
 #include <vector>
+#include <string>
+using namespace std;
 
 class ModularInputHandler; // Forward declaration due to circular dependency
 class ModularPhysicsHandler; // Forward declaration due to circular dependency
@@ -21,9 +23,11 @@ public:
     SDL_Color color;    // Color of the object
     ModularInputHandler* inputHandler;
     ModularPhysicsHandler *physicsHandler;
+    ModularPhysicsHandler *physicsHandler2;
     ModularPatternHandler *patternHandler;
     ModularCollisionHandler *collisionHandler;
     ModularRenderer *renderingHandler;
+    string name = "entity";
 
     // Default constructor
     Entity();
@@ -41,5 +45,8 @@ public:
 
     // Method to check if this entity collides with another entity
     bool checkCollision(const Entity &other) const;
+
+    void setName(string name);
+    string getName();
 
 };

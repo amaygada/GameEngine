@@ -56,14 +56,17 @@ std::string Serializer::serializeEntity(Entity *entity) {
                                 ", r=" + std::to_string(entity->color.r) +
                                 ", g=" + std::to_string(entity->color.g) +
                                 ", b=" + std::to_string(entity->color.b) +
-                                ", a=" + std::to_string(entity->color.a);
+                                ", a=" + std::to_string(entity->color.a) + 
+                                ", name=" + entity->getName();
     return request_message;
 }
 
 Entity* Serializer::deserializeEntity(std::string data) {
     int x, y, w, h, r, g, b, a;
-    sscanf(data.c_str(), "Entity data: x=%d, y=%d, w=%d, h=%d, r=%d, g=%d, b=%d, a=%d", &x, &y, &w, &h, &r, &g, &b, &a);
+    char name[256];
+    sscanf(data.c_str(), "Entity data: x=%d, y=%d, w=%d, h=%d, r=%d, g=%d, b=%d, a=%d, name=%255[^\n]", &x, &y, &w, &h, &r, &g, &b, &a, &name);
     SDL_Color color = {r, g, b, a};
     Entity *entity = new Entity(x, y, w, h, color);
+    entity->setName(name);
     return entity;
 }

@@ -22,8 +22,10 @@ void InputSubsystem::doInput(vector<Entity*>& E) {
 
     const Uint8 *state = SDL_GetKeyboardState(NULL);
 
+    this->customInput(E);
+
     if (state[SDL_SCANCODE_ESCAPE]){
-        exit(0);
+        app->quit = true;
     }else if (state[SDL_SCANCODE_T] && state[SDL_SCANCODE_LSHIFT]){
         SDL_RenderSetLogicalSize(app->renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
     }else if (state[SDL_SCANCODE_T]){
@@ -49,8 +51,6 @@ void InputSubsystem::doInput(vector<Entity*>& E) {
         gameTimeline->changeTic(1E9/(GAMETIME_FREQ * 0.5));
     }
 
-    this->customInput(E);
-
     for (int i = 0; i < 512; i++) {
         this->PState[i] = state[i];
     }
@@ -61,7 +61,7 @@ void InputSubsystem::doInput(vector<Entity*>& E) {
         switch (event.type)
         {
         case SDL_QUIT:
-            exit(0);
+            app->quit = true;
             break;
 
         default:

@@ -17,6 +17,11 @@ void PhysicsSubsystem::doPhysics(vector<Entity*>& E) {
             else entity->physicsHandler->updatePhysics(entity, 0, 0, 0, PHYS_GRAVITY_CONSTANT, -1);
         }
 
+        if (entity->physicsHandler2 != nullptr){
+            if (entity->physicsHandler2->input_allowed) entity->physicsHandler2->handleInput(entity);
+            else entity->physicsHandler2->updatePhysics(entity, 0, 0, 0, PHYS_GRAVITY_CONSTANT, -1);
+        }
+
     }
 
     this->customPhysics(E);

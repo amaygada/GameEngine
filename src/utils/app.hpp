@@ -14,6 +14,7 @@
 typedef struct {
     SDL_Window *window;
     SDL_Renderer *renderer;
+    bool quit;
 } App;
 
 // Global variable for the SDL application

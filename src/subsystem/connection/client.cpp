@@ -20,19 +20,25 @@ void Client::performHandshake(vector<Entity*>& E){
     string reply = messageHandler.receiveMessage(req_rep);
     auto msg = messageHandler.parseMessage(reply);
     id = std::stoi(msg.second);
-    entity = E[id];
+    entity = E[0];
     // send entity
     message = messageHandler.createMessage(2, "ClientID:"+msg.second+" Entity:"+serializer.serializeEntity(entity));
     messageHandler.sendMessage(req_rep, message);
     reply = messageHandler.receiveMessage(req_rep);
     // populate entity map
-    entityMap[id] = {E[id]};
+    entityMap[id] = E;
 }
 
 void Client::sendEntityUpdate(){
     string entity_str = serializer.serializeEntity(entity);
     string id_str = std::to_string(id);
     string message = messageHandler.createMessage(3, "ClientID:"+id_str+" Entity:"+entity_str);
+    messageHandler.sendMessage(push_pull, message);
+}
+
+void Client::sendQuitMessage(){
+    string id_str = std::to_string(id);
+    string message = messageHandler.createMessage(4, "ClientID:"+id_str);
     messageHandler.sendMessage(push_pull, message);
 }
 

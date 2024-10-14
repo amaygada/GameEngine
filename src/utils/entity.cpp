@@ -4,6 +4,7 @@
 Entity::Entity() : x(0), y(0), w(0), h(0), color({0, 0, 0, 255}) {
     inputHandler = nullptr;
     physicsHandler = nullptr;
+    physicsHandler2 = nullptr;
     patternHandler = nullptr;
     collisionHandler = nullptr;
     renderingHandler = nullptr;
@@ -13,6 +14,7 @@ Entity::Entity() : x(0), y(0), w(0), h(0), color({0, 0, 0, 255}) {
 Entity::Entity(int x, int y, int w, int h, SDL_Color color): x(x), y(y), w(w), h(h), color(color) {
     inputHandler = nullptr;
     physicsHandler = nullptr;
+    physicsHandler2 = nullptr;
     patternHandler = nullptr;
     collisionHandler = nullptr;
     renderingHandler = nullptr;
@@ -42,4 +44,12 @@ bool Entity::checkCollision(const Entity &other) const {
 void Entity::updateDimensions(int newx, int newy, int neww, int newh) {
     x = newx; y = newy;
     w = neww; h = newh;
+}
+
+void Entity::setName(string name){
+    this->name = name;
+}
+
+string Entity::getName(){
+    return this->name;
 }

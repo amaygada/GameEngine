@@ -49,7 +49,6 @@ void Renderer::presentScene(const unordered_map<int, std::vector<Entity *>> &ent
                 if(entity->renderingHandler != nullptr) entity->renderingHandler->renderEntity(entity);
             }
             else entity->draw(app->renderer);
-            // entity->draw(app->renderer);
         }
     }
 

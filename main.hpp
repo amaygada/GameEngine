@@ -11,6 +11,8 @@
 #include "src/subsystem/connection/server.hpp"
 #include "src/subsystem/connection/client.hpp"
 #include <memory>
+#include <vector>
+#include <mutex>
 
 // window context
 extern App *app;
@@ -28,3 +30,24 @@ extern AnimationSubsystem *animationSubsystem;
 extern CollisionSubsystem *collisionSubsystem;
 
 extern std::mutex entity_mutex;
+
+class JumpPhysicsHandler : public ModularPhysicsHandler{
+    private:
+        int y_initial = -1;
+    public:
+        JumpPhysicsHandler(bool input_allowed) : ModularPhysicsHandler(input_allowed) {}
+        void handleInput(Entity *entity) override;
+        void updatePhysics(Entity *entity, double velocity_x, double velocity_y, double acceleration_x, double acceleration_y, int direction) override;
+};
+
+class XPhysicsHandler : public ModularPhysicsHandler{
+    public:
+        XPhysicsHandler(bool input_allowed) : ModularPhysicsHandler(input_allowed) {}
+        void handleInput(Entity *entity) override;
+        void updatePhysics(Entity *entity, double velocity_x, double velocity_y, double acceleration_x, double acceleration_y, int direction) override;
+};
+
+class CharacterCollisionHandler : public ModularCollisionHandler{
+    public:
+        void triggerPostCollide(Entity *entity, std::unordered_map<int, std::vector<Entity *>> &entityMap) override;
+};
