@@ -80,8 +80,15 @@ void Server::handleRequest(string message){
     int type = msg.first;
     string data = msg.second;
 
+     if (type == 0) {
+        int client_id;
+        sscanf(data.c_str(), "ClientID:%d", &client_id);
+        auto it = entityMap.find(client_id);
+        entityMap.erase(it);
+    }
+
     // HANDSHAKE REQUEST
-    if( type == 1 ){
+    else if( type == 1 ){
         // get id in a thread safe manner
         mutex.lock();
         int id = id_counter++;
@@ -116,15 +123,6 @@ void Server::handleRequest(string message){
         entityMap[client_id][0] = entity;
         mutex.unlock();
     }
-
-    else if( type == 4 ){
-        int client_id;
-        sscanf(data.c_str(), "ClientID:%d", &client_id);
-        mutex.lock();
-        entityMap.erase(client_id);
-        mutex.unlock();
-    }
-
 }
 
 void Server::addEntities(std::vector<Entity*> E){

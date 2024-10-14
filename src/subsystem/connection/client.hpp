@@ -23,7 +23,7 @@ public:
     void performHandshake(vector<Entity*>& E);
     void sendEntityUpdate();
     void receiveEntityUpdates();
-    void sendQuitMessage();
+    void uponTermination();
     unordered_map<int, std::vector<Entity *>>& getEntityMap();
 
 };

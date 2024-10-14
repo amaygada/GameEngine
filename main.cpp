@@ -14,11 +14,6 @@ void run_client_server(bool isServer) {
     vector<Entity*> E;
 
     if(isServer){
-        // SDL_Color shapeColor1 = {255, 0, 0, 255};  // Red color
-        // Entity* shape1 = new Entity(800, 400, 50, 200, shapeColor1);
-        // shape1->physicsHandler = new DefaultGravityPhysicsHandler(false);
-        // E.push_back(shape1);  // Push the dynamically allocated entity
-
         SDL_Color shapeColor3 = {110, 110, 110, 255};
         Entity *shape3 = new Entity( 400, SCREEN_HEIGHT-200, 200, 50, shapeColor3);
         shape3->setName("Platform");
@@ -39,7 +34,7 @@ void run_client_server(bool isServer) {
         std::vector<SDL_Rect> shape6Path = {};
         shape6Path.push_back({100,   SCREEN_HEIGHT-30, 1, 1});
         shape6Path.push_back({1800,   SCREEN_HEIGHT-30, 1, 1});
-        shape6->patternHandler = new DefaultPatternHandler(shape6Path);\
+        shape6->patternHandler = new DefaultPatternHandler(shape6Path);
         shape6->setName("bullet");
         E.push_back(shape6);
 
@@ -302,7 +297,7 @@ void CharacterCollisionHandler::triggerPostCollide(Entity *entity, std::unordere
 
 void HandleGentleExit(Client *client){
     if(app->quit){
-        client->sendQuitMessage();
+        client->uponTermination();
         SDL_Quit();
         exit(0);
     }

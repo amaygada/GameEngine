@@ -36,9 +36,8 @@ void Client::sendEntityUpdate(){
     messageHandler.sendMessage(push_pull, message);
 }
 
-void Client::sendQuitMessage(){
-    string id_str = std::to_string(id);
-    string message = messageHandler.createMessage(4, "ClientID:"+id_str);
+void Client::uponTermination() {
+    string message = messageHandler.createMessage(0, "ClientID:" + std::to_string(id));
     messageHandler.sendMessage(push_pull, message);
 }
 
