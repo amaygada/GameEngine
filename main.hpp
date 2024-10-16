@@ -47,7 +47,7 @@ class XPhysicsHandler : public ModularPhysicsHandler{
         void updatePhysics(Entity *entity, double velocity_x, double velocity_y, double acceleration_x, double acceleration_y, int direction) override;
 };
 
-class CharacterCollisionHandler : public ModularCollisionHandler{
+class CharacterCollisionHandler : public ModularCollisionHandler{    
     public:
         void triggerPostCollide(Entity *entity, std::unordered_map<int, std::vector<Entity *>> &entityMap) override;
 };

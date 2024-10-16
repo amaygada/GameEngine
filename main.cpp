@@ -8,6 +8,10 @@ void createClientCharacter(int x, int y, std::vector<Entity*>& E);
 void createDeathZone(std::vector<Entity*>& E);
 void createSideScroller(std::vector<Entity*>& E);
 void HandleGentleExit(Client *client);
+void custom_entity_renderer(const unordered_map<int, std::vector<Entity *>> &entity_map, int client_id);
+
+int displacement = 0;
+bool moving = false;
 
 void run_client_server(bool isServer) {
     // a list of entities controlled by the process using it
@@ -68,7 +72,6 @@ void run_client_server(bool isServer) {
         }
 
     } else {
-
         vector<pair<int,int>> spawn_points;
         spawn_points.push_back({100, SCREEN_HEIGHT-70});
         spawn_points.push_back({150, SCREEN_HEIGHT-70});
@@ -117,7 +120,8 @@ void run_client_server(bool isServer) {
             client->sendEntityUpdate();       // Client sends its entity update to the server
             client->receiveEntityUpdates();  // Client receives entity updates from the server
             
-            renderer->presentScene(client->getEntityMap(), client->id);
+            custom_entity_renderer(client->getEntityMap(), client->id);
+            renderer->presentScene(client->getEntityMap(), client->id, true);
         }
 
         renderer->cleanup();
@@ -135,15 +139,15 @@ int main(int argc, char *argv[]){
 void createDeathZone(std::vector<Entity*>& E) {
     SDL_Color shapeColor2 = {0, 0, 0, 255};  // Black color
     Entity *shape2 = new Entity( 0, 0, 10, SCREEN_HEIGHT+70, shapeColor2);
-    shape2->renderingHandler = new DefaultRenderer();
+    // shape2->renderingHandler = new DefaultRenderer();
     shape2->setName("DeathZone");
     E.push_back(shape2);
 }
 
 void createSideScroller(std::vector<Entity*>& E) {
     SDL_Color shapeColor2 = {0, 0, 0, 255};  // Black color
-    Entity *shape2 = new Entity( SCREEN_WIDTH/2, 0, 10, SCREEN_HEIGHT+70, shapeColor2);
-    shape2->renderingHandler = new DefaultRenderer();
+    Entity *shape2 = new Entity( SCREEN_WIDTH/2, 0, SCREEN_WIDTH/2, SCREEN_HEIGHT+70, shapeColor2);
+    // shape2->renderingHandler = new DefaultRenderer();
     shape2->setName("SideScroller");
     E.push_back(shape2);
 }
@@ -219,11 +223,14 @@ void XPhysicsHandler::handleInput(Entity *entity) {
     if (state[SDL_SCANCODE_D] && !this->PState[SDL_SCANCODE_D]) {
         this->physicsTimeline->resume();
         this->updatePhysics(entity, 10, 0, 0, 0, 1);
+        moving = true;
     }else if (state[SDL_SCANCODE_D] && this->PState[SDL_SCANCODE_D]) {
         this->updatePhysics(entity, 10, 0, 0, 0, 1);
+        moving = true;
     }else if (!state[SDL_SCANCODE_D] && this->PState[SDL_SCANCODE_D]) {
         this->physicsTimeline->pause();
         this->start_time = -1;
+        moving = false;
     }
 
     // If the 'A' key is pressed
@@ -256,8 +263,10 @@ void XPhysicsHandler::updatePhysics(Entity *entity, double velocity_x, double ve
     int to_be_loc = velocity_x + (0.5 * acceleration_x * (timeValue * timeValue));
     int locDifference = direction * (to_be_loc);
 
-    if (entity->x + entity->w + locDifference >= SCREEN_WIDTH) {
-        entity->x = SCREEN_WIDTH - entity->w;
+    int xbound = SCREEN_WIDTH/1.5;
+
+    if (entity->x + entity->w + locDifference >= xbound) {
+        entity->x = xbound - entity->w;
     }else if(entity->x + locDifference <= 0){
         entity->x = 0;
     }else {
@@ -285,10 +294,16 @@ void CharacterCollisionHandler::triggerPostCollide(Entity *entity, std::unordere
 
                     entity->x = spawn_x;
                     entity->y = spawn_y;
+                    displacement = 0;
                 }else if(other->getName() == "bullet" && entity->checkCollision(*other)){
-                    cout<<"Character hit by bullet"<<endl;
+                    // cout<<"Character hit by bullet"<<endl;
                 }else if(other->getName() == "SideScroller" && entity->checkCollision(*other)){
-                    cout<<"Scroll to side now"<<endl;
+                    if(moving){
+                        if(entity->x >= SCREEN_WIDTH/2 + 1 - 100){
+                            // cout<<platform->x<<endl;
+                            displacement += 30;
+                        }
+                    }
                 }
             }
         }
@@ -300,5 +315,53 @@ void HandleGentleExit(Client *client){
         client->uponTermination();
         SDL_Quit();
         exit(0);
+    }
+}
+
+// void update_platforms(){
+//     // based on displacement, original platform positions, and screen width, calculate if more elements need to added to enable scrolling
+//     for(auto platform: platforms){
+//         if((platform.first->x - (displacement%SCREEN_WIDTH)) + platform.first->w < 0){
+//             platform.first->x = platform.second->x + SCREEN_WIDTH;
+//         }else if((platform.second->x - (displacement%SCREEN_WIDTH)) + platform.second->w < 0){
+//             platform.second->x = platform.first->x + SCREEN_WIDTH;
+//         }
+//     }
+// }
+
+void custom_entity_renderer(const unordered_map<int, std::vector<Entity *>> &entity_map, int client_id) {
+    vector<pair<Entity,Entity>> platforms;
+
+    for (const auto pair : entity_map) {
+        std::vector<Entity *> entities = pair.second;
+        if(pair.first == -1){
+            for(Entity *e: entities){
+                if(e->name != "Platform") continue;
+                Entity *e1 = new Entity( e->x, e->y, e->w, e->h, e->color);
+                Entity *e2 = new Entity( e->x + SCREEN_WIDTH , e->y, e->w, e->h, e->color);
+                platforms.push_back({*e1, *e2});
+            }
+        }
+
+        // update_platforms();
+
+        for (Entity *entity : entities) {
+            if(pair.first == client_id){
+                if(entity->renderingHandler != nullptr) entity->renderingHandler->renderEntity(entity);
+            }else if(pair.first == -1){
+                if(entity->name != "Platform") {
+                    entity->draw(app->renderer);
+                }else{
+                    // render platforms
+                    for(auto platform: platforms){
+                        platform.first.x -= displacement%SCREEN_WIDTH;
+                        platform.first.draw(app->renderer);
+                        platform.second.x -= displacement%SCREEN_WIDTH;
+                        platform.second.draw(app->renderer);
+                    }
+                }
+            }
+            else entity->draw(app->renderer);
+        }
     }
 }

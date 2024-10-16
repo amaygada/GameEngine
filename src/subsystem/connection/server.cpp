@@ -12,7 +12,7 @@ Server::Server() :
         push_pull.bind("tcp://*:5556");
         pub_sub.bind("tcp://*:5557");
 
-        broadcastTimeline = new Timeline(globalTimeline, 1e9/20);
+        broadcastTimeline = new Timeline(globalTimeline, 1e9/100);
 
         gameTimeline->pause();
     }

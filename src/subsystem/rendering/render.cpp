@@ -40,8 +40,13 @@ void Renderer::prepareScene() {
 
 // Function to present the scene
 // attach timer here
-void Renderer::presentScene(const unordered_map<int, std::vector<Entity *>> &entity_map, int client_id) {
+void Renderer::presentScene(const unordered_map<int, std::vector<Entity *>> &entity_map, int client_id, bool use_custom_renderer) {
     // Draw the entities from the entity_map
+    if(use_custom_renderer){
+        SDL_RenderPresent(app->renderer);
+        return;
+    }
+
     for (const auto pair : entity_map) {
         std::vector<Entity *> entities = pair.second;
         for (Entity *entity : entities) {
@@ -51,7 +56,6 @@ void Renderer::presentScene(const unordered_map<int, std::vector<Entity *>> &ent
             else entity->draw(app->renderer);
         }
     }
-
     SDL_RenderPresent(app->renderer);  // Present the final rendered scene
 }
 
