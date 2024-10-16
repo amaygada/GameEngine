@@ -10,15 +10,15 @@ private:
     zmq::context_t context;
     zmq::socket_t req_rep;
     zmq::socket_t pub_sub;
-    zmq::socket_t push_pull;
-    Entity *entity;
     unordered_map<int, std::vector<Entity *>> entityMap;
-    Serializer serializer;
-    MessageHandler messageHandler;
 
 public:
     int id;
-
+    Entity *entity;
+    Serializer serializer;
+    MessageHandler messageHandler;
+    zmq::socket_t push_pull;
+    
     Client();
     void performHandshake(vector<Entity*>& E);
     void sendEntityUpdate();

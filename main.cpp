@@ -9,8 +9,8 @@ void createDeathZone(std::vector<Entity*>& E);
 void createSideScroller(std::vector<Entity*>& E);
 void HandleGentleExit(Client *client);
 void custom_entity_renderer(const unordered_map<int, std::vector<Entity *>> &entity_map, int client_id);
+void sendCustomEntityUpdate(Client *client);
 
-int displacement = 0;
 bool moving = false;
 
 void run_client_server(bool isServer) {
@@ -117,7 +117,8 @@ void run_client_server(bool isServer) {
             collision_thread.join();
 
             // Client-server communication
-            client->sendEntityUpdate();       // Client sends its entity update to the server
+            // client->sendEntityUpdate();       // Client sends its entity update to the server
+            sendCustomEntityUpdate(client);
             client->receiveEntityUpdates();  // Client receives entity updates from the server
             
             custom_entity_renderer(client->getEntityMap(), client->id);
@@ -131,6 +132,7 @@ void run_client_server(bool isServer) {
 int main(int argc, char *argv[]){
     srand(time(0));
     app->quit = false;
+    app->displacement = 0;
     bool isServer = (argc > 1 && std::string(argv[1]) == "server");
     run_client_server(isServer);
      return 0;
@@ -294,14 +296,13 @@ void CharacterCollisionHandler::triggerPostCollide(Entity *entity, std::unordere
 
                     entity->x = spawn_x;
                     entity->y = spawn_y;
-                    displacement = 0;
+                    app->displacement = 0;
                 }else if(other->getName() == "bullet" && entity->checkCollision(*other)){
                     // cout<<"Character hit by bullet"<<endl;
                 }else if(other->getName() == "SideScroller" && entity->checkCollision(*other)){
                     if(moving){
                         if(entity->x >= SCREEN_WIDTH/2 + 1 - 100){
-                            // cout<<platform->x<<endl;
-                            displacement += 30;
+                            app->displacement += 15;
                         }
                     }
                 }
@@ -317,17 +318,6 @@ void HandleGentleExit(Client *client){
         exit(0);
     }
 }
-
-// void update_platforms(){
-//     // based on displacement, original platform positions, and screen width, calculate if more elements need to added to enable scrolling
-//     for(auto platform: platforms){
-//         if((platform.first->x - (displacement%SCREEN_WIDTH)) + platform.first->w < 0){
-//             platform.first->x = platform.second->x + SCREEN_WIDTH;
-//         }else if((platform.second->x - (displacement%SCREEN_WIDTH)) + platform.second->w < 0){
-//             platform.second->x = platform.first->x + SCREEN_WIDTH;
-//         }
-//     }
-// }
 
 void custom_entity_renderer(const unordered_map<int, std::vector<Entity *>> &entity_map, int client_id) {
     vector<pair<Entity,Entity>> platforms;
@@ -354,14 +344,28 @@ void custom_entity_renderer(const unordered_map<int, std::vector<Entity *>> &ent
                 }else{
                     // render platforms
                     for(auto platform: platforms){
-                        platform.first.x -= displacement%SCREEN_WIDTH;
+                        platform.first.x -= app->displacement%SCREEN_WIDTH;
                         platform.first.draw(app->renderer);
-                        platform.second.x -= displacement%SCREEN_WIDTH;
+                        platform.second.x -= app->displacement%SCREEN_WIDTH;
                         platform.second.draw(app->renderer);
                     }
+                }
+            }else if(entity->getName() == "Character"){
+                if(entity->x >= app->displacement && entity->x < app->displacement + SCREEN_WIDTH){
+                    entity->x -= app->displacement;
+                    entity->draw(app->renderer);
                 }
             }
             else entity->draw(app->renderer);
         }
     }
+}
+
+void sendCustomEntityUpdate(Client *client){
+    Entity *entity_disp = new Entity(client->entity->x + app->displacement, client->entity->y, client->entity->w, client->entity->h, client->entity->color);
+    entity_disp->name = "Character";
+    string entity_str = client->serializer.serializeEntity(entity_disp);
+    string id_str = std::to_string(client->id);
+    string message = client->messageHandler.createMessage(3, "ClientID:"+id_str+" Entity:"+entity_str);
+    client->messageHandler.sendMessage(client->push_pull, message);
 }
