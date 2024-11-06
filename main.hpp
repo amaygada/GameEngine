@@ -64,5 +64,14 @@ class SideScrollingEventHandler : public EventHandler {
         void onEvent(Event e) override;
 };
 
+class GoRightEventHandler : public EventHandler {
+    public:
+        void onEvent(Event e) override;
+};
+
+class GoLeftEventHandler : public EventHandler {
+    public:
+        void onEvent(Event e) override;
+};
 
 extern EventManager *eventManager;

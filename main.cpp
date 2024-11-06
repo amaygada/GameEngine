@@ -218,8 +218,8 @@ void create_events(){
 
     eventManager->registerEvent("SpawnEvent", new SpawnEventHandler());
     eventManager->registerEvent("SideScrollingEvent", new SideScrollingEventHandler());
-    // eventManager->registerEvent("GoRightEvent", new GoRightEventHandler());
-    // eventManager->registerEvent("GoLeftEvent", new GoLeftEventHandler());
+    eventManager->registerEvent("GoRightEvent", new GoRightEventHandler());
+    eventManager->registerEvent("GoLeftEvent", new GoLeftEventHandler());
     // eventManager->registerEvent("JumpEvent", new JumpEventHandler());
 }
 
@@ -300,6 +300,55 @@ void JumpPhysicsHandler::handleInput(Entity *entity) {
     }
 }
 
+void updatePhysicsX(Entity *entity, double velocity_x, double velocity_y, double acceleration_x, double acceleration_y, int direction) {
+    // if timer is paused, resume it
+    if (entity->physicsHandler->physicsTimeline->isParentPaused()) return;
+
+    if (entity->physicsHandler->physicsTimeline->isPaused()) return;
+
+    if (entity->physicsHandler->start_time == -1) {
+        entity->physicsHandler->start_time = entity->physicsHandler->physicsTimeline->getTime();
+    }
+
+    int timeValue = int(entity->physicsHandler->physicsTimeline->getTime() - entity->physicsHandler->start_time);
+    int to_be_loc = velocity_x + (0.5 * acceleration_x * (timeValue * timeValue));
+    int locDifference = direction * (to_be_loc);
+
+    int xbound = SCREEN_WIDTH/1.5;
+
+    if (entity->x + entity->w + locDifference >= xbound) {
+        entity->x = xbound - entity->w;
+    }else if(entity->x + locDifference <= 0){
+        entity->x = 0;
+    }else {
+        entity->x += locDifference;
+    }
+}
+
+void GoRightEventHandler::onEvent(Event e) {
+    if(e.type == "GoRightEvent"){
+        Entity *entity = e.getParameter("Entity")->m_asGameObject;
+        double velocity_x = e.getParameter("velocityX")->m_asDouble;
+        double velocity_y = e.getParameter("velocityY")->m_asDouble;
+        double acceleration_x = e.getParameter("accelerationX")->m_asDouble;
+        double acceleration_y = e.getParameter("accelerationY")->m_asDouble;
+        int direction = e.getParameter("direction")->m_asInt;
+        updatePhysicsX(entity, velocity_x, velocity_y, acceleration_x, acceleration_y, direction);
+    }
+}
+
+void GoLeftEventHandler::onEvent(Event e) {
+    if(e.type == "GoLeftEvent"){
+        Entity *entity = e.getParameter("Entity")->m_asGameObject;
+        double velocity_x = e.getParameter("velocityX")->m_asDouble;
+        double velocity_y = e.getParameter("velocityY")->m_asDouble;
+        double acceleration_x = e.getParameter("accelerationX")->m_asDouble;
+        double acceleration_y = e.getParameter("accelerationY")->m_asDouble;
+        int direction = e.getParameter("direction")->m_asInt;
+        updatePhysicsX(entity, velocity_x, velocity_y, acceleration_x, acceleration_y, direction);
+    }
+}
+
 void XPhysicsHandler::handleInput(Entity *entity) {
     const Uint8 *state = SDL_GetKeyboardState(NULL);
 
@@ -309,10 +358,14 @@ void XPhysicsHandler::handleInput(Entity *entity) {
     // If the 'D' key is pressed
     if (state[SDL_SCANCODE_D] && !this->PState[SDL_SCANCODE_D]) {
         this->physicsTimeline->resume();
-        this->updatePhysics(entity, 10, 0, 0, 0, 1);
+        Event *goRightEvent = eventMap["GoRightEvent"];
+        goRightEvent->addParameter("Entity", entity);
+        eventManager->raiseEvent(goRightEvent, 0);
         moving = true;
     }else if (state[SDL_SCANCODE_D] && this->PState[SDL_SCANCODE_D]) {
-        this->updatePhysics(entity, 10, 0, 0, 0, 1);
+        Event *goRightEvent = eventMap["GoRightEvent"];
+        goRightEvent->addParameter("Entity", entity);
+        eventManager->raiseEvent(goRightEvent, 0);
         moving = true;
     }else if (!state[SDL_SCANCODE_D] && this->PState[SDL_SCANCODE_D]) {
         this->physicsTimeline->pause();
@@ -323,9 +376,13 @@ void XPhysicsHandler::handleInput(Entity *entity) {
     // If the 'A' key is pressed
     if (state[SDL_SCANCODE_A] && !this->PState[SDL_SCANCODE_A]) {
         this->physicsTimeline->resume();
-        this->updatePhysics(entity, 10, 0, 0, 0, -1);
+        Event *goLeftEvent = eventMap["GoLeftEvent"];
+        goLeftEvent->addParameter("Entity", entity);
+        eventManager->raiseEvent(goLeftEvent, 0);
     }else if (state[SDL_SCANCODE_A] && this->PState[SDL_SCANCODE_A]) {
-        this->updatePhysics(entity, 10, 0, 0, 0, -1);
+        Event *goLeftEvent = eventMap["GoLeftEvent"];
+        goLeftEvent->addParameter("Entity", entity);
+        eventManager->raiseEvent(goLeftEvent, 0);
     }else if (!state[SDL_SCANCODE_A] && this->PState[SDL_SCANCODE_A]) {
         this->physicsTimeline->pause();
         this->start_time = -1;
