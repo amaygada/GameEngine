@@ -34,7 +34,10 @@ void DefaultCollisionHandler::triggerPostCollide(Entity *entity, std::unordered_
             if(e1 == entity) continue;
             if (e1->checkCollision(*entity)) {
                 // Custom collision handling logic
-                std:cout << "Collision detected between Entity " << it1->first << " and Entity " << entity << std::endl;
+                Event *defaultCollisionEvent = new Event("DefaultCollisionEvent");
+                defaultCollisionEvent->addParameter("Entity1", entity);
+                defaultCollisionEvent->addParameter("Entity2", it1->first);
+                eventManager->raiseEvent(defaultCollisionEvent, 0);
             }
         }   
     }

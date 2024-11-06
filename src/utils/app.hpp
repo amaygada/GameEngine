@@ -1,6 +1,7 @@
 #pragma once
 #include "timer.hpp"
 #include "defs.hpp"
+#include "./../subsystem/event_manager/event_manager.hpp"
 #include "./../subsystem/input_handling/input.hpp"
 #include "./../subsystem/physics/physics.hpp"
 #include "./../subsystem/animation/animation.hpp"

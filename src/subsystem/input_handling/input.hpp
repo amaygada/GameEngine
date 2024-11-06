@@ -5,6 +5,8 @@
 #include <SDL2/SDL.h>
 #include <vector>
 #include <iostream>
+#include "./../event_manager/event_base.hpp"
+#include "./../../utils/event.hpp"
 using namespace std;
 
 class Entity; //forward declaration due to circular dependency
@@ -28,3 +30,9 @@ public:
     virtual void handleInput(Entity *entity)=0;
     virtual ~ModularInputHandler() = default;
 };
+
+extern Event *quitGameEvent;
+extern Event *changeTicEvent;
+extern Event *gamePauseEvent;
+extern EventHandler *quitGameEventHandler;
+extern EventManager *eventManager;

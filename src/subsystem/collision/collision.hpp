@@ -1,6 +1,8 @@
 #pragma once
 #include "./../../utils/entity.hpp"
 #include "./../../utils/timer.hpp"
+#include "./../../utils/event.hpp"
+#include "./../../utils/app.hpp"
 #include <unordered_map>
 #include <vector>
 
@@ -32,5 +34,4 @@ class DefaultCollisionHandler : public ModularCollisionHandler{
         void triggerPostCollide(Entity *entity, std::unordered_map<int, std::vector<Entity *>> &entityMap) override;
 };
 
-// add a customCollisionHandler here
-// then change the implementation of doCollision to use respective customCollisionHandler for each entity
+extern EventManager *eventManager;

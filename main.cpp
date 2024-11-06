@@ -10,12 +10,15 @@ void createSideScroller(std::vector<Entity*>& E);
 void HandleGentleExit(Client *client);
 void custom_entity_renderer(const unordered_map<int, std::vector<Entity *>> &entity_map, int client_id);
 void sendCustomEntityUpdate(Client *client);
+void create_events();
+
+std::map<std::string, Event*> eventMap;
+vector<Entity*> E;
 
 bool moving = false;
 
 void run_client_server(bool isServer) {
     // a list of entities controlled by the process using it
-    vector<Entity*> E;
 
     if(isServer){
         SDL_Color shapeColor3 = {110, 110, 110, 255};
@@ -72,27 +75,15 @@ void run_client_server(bool isServer) {
         }
 
     } else {
-        vector<pair<int,int>> spawn_points;
-        spawn_points.push_back({100, SCREEN_HEIGHT-70});
-        spawn_points.push_back({150, SCREEN_HEIGHT-70});
-        spawn_points.push_back({200, SCREEN_HEIGHT-70});
-        spawn_points.push_back({250, SCREEN_HEIGHT-70});
+        Client *client = new Client();
 
-        // select a random spawn point
-        cout<< rand() % spawn_points.size()  <<endl;
-        int spawn_point_index = rand() % spawn_points.size();
-        int spawn_x = spawn_points[spawn_point_index].first;
-        int spawn_y = spawn_points[spawn_point_index].second;
+        // create a spawn event
+        Event *spawnEvent = eventMap["SpawnEvent"];
+        spawnEvent->addParameter("init", 1);
+        eventManager->raiseEvent(spawnEvent, 0);
 
-        // create client character
-        createClientCharacter(spawn_x, spawn_y, E);
         createDeathZone(E);
         createSideScroller(E);
-
-        Client *client = new Client();
-        
-        // perform handshake
-        client->performHandshake(E);
 
         renderer->init("Game");
 
@@ -116,6 +107,20 @@ void run_client_server(bool isServer) {
             physics_thread.join();
             collision_thread.join();
 
+            while (!eventManager->eventQueue.empty() && eventManager->eventQueue.top().first <= eventManager->timeline->getTime()) {
+                cout<<eventManager->eventQueue.top().second->type<<endl;
+                std::pair<int, Event*> eventPair = eventManager->eventQueue.top();
+                eventManager->eventQueue.pop();
+                Event *event = eventPair.second;
+                std::string eventType = event->type;
+                std::vector<EventHandler*> handlers = eventManager->eventHandlers[eventType];
+                for (EventHandler *handler : handlers) {
+                    handler->onEvent(*event);
+                }
+            }
+
+            client->performHandshake(E); //just once
+
             // Client-server communication
             // client->sendEntityUpdate();       // Client sends its entity update to the server
             sendCustomEntityUpdate(client);
@@ -133,9 +138,89 @@ int main(int argc, char *argv[]){
     srand(time(0));
     app->quit = false;
     app->displacement = 0;
+
+    create_events();
+
     bool isServer = (argc > 1 && std::string(argv[1]) == "server");
     run_client_server(isServer);
      return 0;
+}
+
+void SpawnEventHandler::onEvent(Event e) {
+    if(e.type == "SpawnEvent"){
+        vector<pair<int,int>> spawn_points;
+        spawn_points.push_back({e.getParameter("x1")->m_asInt, e.getParameter("y1")->m_asInt});
+        spawn_points.push_back({e.getParameter("x2")->m_asInt, e.getParameter("y2")->m_asInt});
+        spawn_points.push_back({e.getParameter("x3")->m_asInt, e.getParameter("y3")->m_asInt});
+        spawn_points.push_back({e.getParameter("x4")->m_asInt, e.getParameter("y4")->m_asInt});
+
+        // select a random spawn point
+        cout<< rand() % spawn_points.size()  <<endl;
+        int spawn_point_index = rand() % spawn_points.size();
+        int spawn_x = spawn_points[spawn_point_index].first;
+        int spawn_y = spawn_points[spawn_point_index].second;
+
+        if(e.getParameter("init")->m_asInt == 1){
+            createClientCharacter(spawn_x, spawn_y, E);
+        }else{
+            e.getParameter("Entity")->m_asGameObject->x = spawn_x;
+            e.getParameter("Entity")->m_asGameObject->y = spawn_y;
+            app->displacement = 0;
+        }
+    }
+}
+
+void SideScrollingEventHandler::onEvent(Event e) {
+    if(e.type == "SideScrollingEvent"){
+        if(moving){
+            if(e.getParameter("Entity")->m_asGameObject->x >= SCREEN_WIDTH/2 + 1 - 100){
+                app->displacement += 15;
+            }
+        }
+    }
+}
+
+void create_events(){
+    Event *spawnEvent = new Event("SpawnEvent");
+    spawnEvent->addParameter("x1", 100);
+    spawnEvent->addParameter("y1", SCREEN_HEIGHT-70);
+    spawnEvent->addParameter("x2", 150);
+    spawnEvent->addParameter("y2", SCREEN_HEIGHT-70);
+    spawnEvent->addParameter("x3", 200);
+    spawnEvent->addParameter("y3", SCREEN_HEIGHT-70);
+    spawnEvent->addParameter("x4", 250);
+    spawnEvent->addParameter("y4", SCREEN_HEIGHT-70);
+    eventMap["SpawnEvent"] = spawnEvent;
+
+    Event *goRightEvent = new Event("GoRightEvent");
+    goRightEvent->addParameter("velocityX", double(10));
+    goRightEvent->addParameter("velocityY", double(0));
+    goRightEvent->addParameter("accelerationX", double(0));
+    goRightEvent->addParameter("accelerationY", double(0));
+    goRightEvent->addParameter("direction", 1);
+    eventMap["GoRightEvent"] = goRightEvent;
+
+    Event *goLeftEvent = new Event("GoLeftEvent");
+    goLeftEvent->addParameter("velocityX", double(10));
+    goLeftEvent->addParameter("velocityY", double(0));
+    goLeftEvent->addParameter("accelerationX", double(0));
+    goLeftEvent->addParameter("accelerationY", double(0));
+    goLeftEvent->addParameter("direction", -1);
+    eventMap["GoLeftEvent"] = goLeftEvent;
+
+    Event *jumpEvent = new Event("JumpEvent");
+    jumpEvent->addParameter("velocityX", double(0));
+    jumpEvent->addParameter("velocityY", double(40));
+    jumpEvent->addParameter("accelerationX", double(0));
+    jumpEvent->addParameter("accelerationY", double(3));
+    jumpEvent->addParameter("direction", -1);
+    eventMap["JumpEvent"] = jumpEvent;
+
+    eventManager->registerEvent("SpawnEvent", new SpawnEventHandler());
+    eventManager->registerEvent("SideScrollingEvent", new SideScrollingEventHandler());
+    // eventManager->registerEvent("GoRightEvent", new GoRightEventHandler());
+    // eventManager->registerEvent("GoLeftEvent", new GoLeftEventHandler());
+    // eventManager->registerEvent("JumpEvent", new JumpEventHandler());
 }
 
 void createDeathZone(std::vector<Entity*>& E) {
@@ -282,29 +367,17 @@ void CharacterCollisionHandler::triggerPostCollide(Entity *entity, std::unordere
             std::vector<Entity *> entities = pair.second;
             for (Entity *other : entities) {
                 if(other->getName() == "DeathZone" && entity->checkCollision(*other)){
-                    std::vector<std::pair<int, int>> spawn_points;
-                    spawn_points.push_back({100, SCREEN_HEIGHT-70});
-                    spawn_points.push_back({150, SCREEN_HEIGHT-70});
-                    spawn_points.push_back({200, SCREEN_HEIGHT-70});
-                    spawn_points.push_back({250, SCREEN_HEIGHT-70});
-
-                    // select a random spawn point
-                    cout<< rand() % spawn_points.size()  <<endl;
-                    int spawn_point_index = rand() % spawn_points.size();
-                    int spawn_x = spawn_points[spawn_point_index].first;
-                    int spawn_y = spawn_points[spawn_point_index].second;
-
-                    entity->x = spawn_x;
-                    entity->y = spawn_y;
-                    app->displacement = 0;
+                    Event *spawnEvent = eventMap["SpawnEvent"];
+                    spawnEvent->addParameter("Entity", entity);
+                    spawnEvent->addParameter("init", 0);
+                    eventManager->raiseEvent(spawnEvent, 0);
                 }else if(other->getName() == "bullet" && entity->checkCollision(*other)){
                     // cout<<"Character hit by bullet"<<endl;
                 }else if(other->getName() == "SideScroller" && entity->checkCollision(*other)){
-                    if(moving){
-                        if(entity->x >= SCREEN_WIDTH/2 + 1 - 100){
-                            app->displacement += 15;
-                        }
-                    }
+                    if(!moving) continue;
+                    Event *sideScrollingEvent = new Event("SideScrollingEvent");
+                    sideScrollingEvent->addParameter("Entity", entity);
+                    eventManager->raiseEvent(sideScrollingEvent, 0);
                 }
             }
         }

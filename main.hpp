@@ -14,6 +14,8 @@
 #include <vector>
 #include <mutex>
 
+#include "src/subsystem/event_manager/event_base.hpp"
+
 // window context
 extern App *app;
 
@@ -51,3 +53,16 @@ class CharacterCollisionHandler : public ModularCollisionHandler{
     public:
         void triggerPostCollide(Entity *entity, std::unordered_map<int, std::vector<Entity *>> &entityMap) override;
 };
+
+class SpawnEventHandler : public EventHandler {
+    public:
+        void onEvent(Event e) override;
+};
+
+class SideScrollingEventHandler : public EventHandler {
+    public:
+        void onEvent(Event e) override;
+};
+
+
+extern EventManager *eventManager;

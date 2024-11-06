@@ -1,6 +1,12 @@
 #include "render.hpp"
 
 void Renderer::init(string windowName="Engine") {
+
+    eventManager->registerEvent("QuitGameEvent", new QuitGameEventHandler());
+    eventManager->registerEvent("ChangeTicEvent", new ChangeTicEventHandler());
+    eventManager->registerEvent("GamePauseEvent", new GamePauseEventHandler());
+    eventManager->registerEvent("DefaultCollisionEvent", new DefaultCollisionEventHandler());
+
     int rendererFlags, windowFlags;
     rendererFlags = SDL_RENDERER_ACCELERATED;
     windowFlags = SDL_WINDOW_RESIZABLE;

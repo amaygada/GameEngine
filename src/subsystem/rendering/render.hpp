@@ -3,6 +3,8 @@
 #include "./../../utils/defs.hpp"
 #include "./../../utils/entity.hpp"
 #include "./../../utils/timer.hpp"
+#include "./../../subsystem/event_manager/event_base.hpp"
+#include "./../../utils/event.hpp"
 
 #include <SDL2/SDL.h>
 #include <iostream>
@@ -38,3 +40,5 @@ class DefaultRenderer : public ModularRenderer{
     public:
         void renderEntity(Entity *entity) override;
 };
+
+extern EventManager *eventManager;

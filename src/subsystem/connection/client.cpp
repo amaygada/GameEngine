@@ -1,5 +1,7 @@
 # include "client.hpp"
 
+bool bbbb = false;
+
 Client::Client() : 
     context(1),
     req_rep(context, ZMQ_REQ),
@@ -14,13 +16,15 @@ Client::Client() :
     }
 
 void Client::performHandshake(vector<Entity*>& E){
+    if(bbbb) return;
+    bbbb = true;
     // get client Id
     string message = messageHandler.createMessage(1, "Hello");
     messageHandler.sendMessage(req_rep, message);
     string reply = messageHandler.receiveMessage(req_rep);
     auto msg = messageHandler.parseMessage(reply);
     id = std::stoi(msg.second);
-    entity = E[0];
+    entity = E[2];
     // send entity
     message = messageHandler.createMessage(2, "ClientID:"+msg.second+" Entity:"+serializer.serializeEntity(entity));
     messageHandler.sendMessage(req_rep, message);

@@ -19,11 +19,13 @@ SRC = main.cpp \
 	$(SUBSYSTEM)/collision/collision.cpp \
 	$(SUBSYSTEM)/connection/client.cpp \
 	$(SUBSYSTEM)/connection/server.cpp \
+	$(SUBSYSTEM)/event_manager/event_manager.cpp \
 	$(SUBSYSTEM)/connection/p2pclient.cpp \
 	$(SUBSYSTEM)/connection/message.cpp \
 	$(UTILS)/app.cpp \
 	$(UTILS)/entity.cpp \
 	$(UTILS)/timer.cpp \
+	$(UTILS)/event.cpp \
 	# $(UTILS)/server.cpp \
 	# $(UTILS)/client.cpp \
 

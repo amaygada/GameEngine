@@ -25,7 +25,7 @@ void InputSubsystem::doInput(vector<Entity*>& E) {
     this->customInput(E);
 
     if (state[SDL_SCANCODE_ESCAPE]){
-        app->quit = true;
+        eventManager->raiseEvent(quitGameEvent, 0);
     }else if (state[SDL_SCANCODE_T] && state[SDL_SCANCODE_LSHIFT]){
         SDL_RenderSetLogicalSize(app->renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
     }else if (state[SDL_SCANCODE_T]){
@@ -33,8 +33,7 @@ void InputSubsystem::doInput(vector<Entity*>& E) {
     }
 
     if (state[SDL_SCANCODE_SPACE] && !this->PState[SDL_SCANCODE_SPACE]) {
-        if(gameTimeline->isPaused()) gameTimeline->resume();
-        else gameTimeline->pause();
+        eventManager->raiseEvent(gamePauseEvent, 0);
     }else if (state[SDL_SCANCODE_SPACE] && this->PState[SDL_SCANCODE_SPACE]) {
 
     }else if (!state[SDL_SCANCODE_SPACE] && this->PState[SDL_SCANCODE_SPACE]) {
@@ -42,13 +41,16 @@ void InputSubsystem::doInput(vector<Entity*>& E) {
     }
 
     if (state[SDL_SCANCODE_J]) { // 2.0 speed
-        gameTimeline->changeTic(1E9/(GAMETIME_FREQ * 2.0));
+        changeTicEvent->addParameter("tic", 1E9/(GAMETIME_FREQ * 2.0));
+        eventManager->raiseEvent(changeTicEvent, 0);
     }
     else if (state[SDL_SCANCODE_K]) { // 1.0 speed (default speed)
-        gameTimeline->changeTic(1E9/GAMETIME_FREQ);
+        changeTicEvent->addParameter("tic", 1E9/GAMETIME_FREQ);
+        eventManager->raiseEvent(changeTicEvent, 0);
     }
     else if (state[SDL_SCANCODE_L]) { // 0.5 speed
-        gameTimeline->changeTic(1E9/(GAMETIME_FREQ * 0.5));
+        changeTicEvent->addParameter("tic", 1E9/(GAMETIME_FREQ * 0.5));
+        eventManager->raiseEvent(changeTicEvent, 0);
     }
 
     for (int i = 0; i < 512; i++) {
@@ -61,7 +63,7 @@ void InputSubsystem::doInput(vector<Entity*>& E) {
         switch (event.type)
         {
         case SDL_QUIT:
-            app->quit = true;
+            eventManager->raiseEvent(quitGameEvent, 0);
             break;
 
         default:
