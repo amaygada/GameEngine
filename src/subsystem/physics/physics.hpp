@@ -2,6 +2,8 @@
 #include "./../../utils/entity.hpp"
 #include "./../../utils/defs.hpp"
 #include "./../../utils/timer.hpp"
+#include "./../../utils/event.hpp"
+#include "./../event_manager/event_base.hpp"
 #include <vector>
 
 class Entity; // Forward declaration due to circular dependency
@@ -47,3 +49,9 @@ class DefaultMovementPhysicsHandler : public ModularPhysicsHandler{
 
 extern Timeline *gameTimeline;
 extern std::mutex entity_mutex;
+
+extern Event *defaultPhysicsEventRight;
+extern Event *defaultPhysicsEventLeft;
+extern Event *defaultPhysicsEventUp;
+extern Event *defaultPhysicsEventDown;
+extern EventManager *eventManager;

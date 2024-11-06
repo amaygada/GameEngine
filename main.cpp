@@ -72,6 +72,17 @@ void run_client_server(bool isServer) {
     
             physics_thread.join();
             animation_thread.join();
+
+            while (!eventManager->eventQueue.empty() && eventManager->eventQueue.top().first <= eventManager->timeline->getTime()) {
+                std::pair<int, Event*> eventPair = eventManager->eventQueue.top();
+                eventManager->eventQueue.pop();
+                Event *event = eventPair.second;
+                std::string eventType = event->type;
+                std::vector<EventHandler*> handlers = eventManager->eventHandlers[eventType];
+                for (EventHandler *handler : handlers) {
+                    handler->onEvent(*event);
+                }
+            }
         }
 
     } else {
@@ -108,7 +119,6 @@ void run_client_server(bool isServer) {
             collision_thread.join();
 
             while (!eventManager->eventQueue.empty() && eventManager->eventQueue.top().first <= eventManager->timeline->getTime()) {
-                cout<<eventManager->eventQueue.top().second->type<<endl;
                 std::pair<int, Event*> eventPair = eventManager->eventQueue.top();
                 eventManager->eventQueue.pop();
                 Event *event = eventPair.second;
@@ -464,7 +474,7 @@ void custom_entity_renderer(const unordered_map<int, std::vector<Entity *>> &ent
         }
 
         // update_platforms();
-
+        
         for (Entity *entity : entities) {
             if(pair.first == client_id){
                 if(entity->renderingHandler != nullptr) entity->renderingHandler->renderEntity(entity);

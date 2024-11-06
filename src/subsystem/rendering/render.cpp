@@ -6,6 +6,9 @@ void Renderer::init(string windowName="Engine") {
     eventManager->registerEvent("ChangeTicEvent", new ChangeTicEventHandler());
     eventManager->registerEvent("GamePauseEvent", new GamePauseEventHandler());
     eventManager->registerEvent("DefaultCollisionEvent", new DefaultCollisionEventHandler());
+    eventManager->registerEvent("DefaultPhysicsEvent", new DefaultPhysicsEventHandler());
+
+    addParametersEvent();
 
     int rendererFlags, windowFlags;
     rendererFlags = SDL_RENDERER_ACCELERATED;

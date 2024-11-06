@@ -65,14 +65,21 @@ void DefaultMovementPhysicsHandler::handleInput(Entity *entity){
     const Uint8 *state = SDL_GetKeyboardState(NULL);
     bool parent_paused = this->physicsTimeline->isParentPaused();
 
+    defaultPhysicsEventRight->addParameter("Entity", entity);
+    defaultPhysicsEventLeft->addParameter("Entity", entity);
+    defaultPhysicsEventUp->addParameter("Entity", entity);
+    defaultPhysicsEventDown->addParameter("Entity", entity);
+
     if(parent_paused) return;
 
     // If the 'D' key is pressed
     if (state[SDL_SCANCODE_D] && !this->PState[SDL_SCANCODE_D]) {
         this->physicsTimeline->resume();
-        this->updatePhysics(entity, 1, 0, 1, 0, 1);
+        eventManager->raiseEvent(defaultPhysicsEventRight, 0);
+        // this->updatePhysics(entity, 1, 0, 1, 0, 1);
     }else if (state[SDL_SCANCODE_D] && this->PState[SDL_SCANCODE_D]) {
-        this->updatePhysics(entity, 1, 0, 1, 0, 1);
+        eventManager->raiseEvent(defaultPhysicsEventRight, 0);
+        // this->updatePhysics(entity, 1, 0, 1, 0, 1);
     }else if (!state[SDL_SCANCODE_D] && this->PState[SDL_SCANCODE_D]) {
         this->physicsTimeline->pause();
         this->start_time = -1;
@@ -81,9 +88,11 @@ void DefaultMovementPhysicsHandler::handleInput(Entity *entity){
     // If the 'A' key is pressed
     if (state[SDL_SCANCODE_A] && !this->PState[SDL_SCANCODE_A]) {
         this->physicsTimeline->resume();
-        this->updatePhysics(entity, 1, 0, 1, 0, -1);
+        // this->updatePhysics(entity, 1, 0, 1, 0, -1);
+        eventManager->raiseEvent(defaultPhysicsEventLeft, 0);
     }else if (state[SDL_SCANCODE_A] && this->PState[SDL_SCANCODE_A]) {
-        this->updatePhysics(entity, 1, 0, 1, 0, -1);
+        // this->updatePhysics(entity, 1, 0, 1, 0, -1);
+        eventManager->raiseEvent(defaultPhysicsEventLeft, 0);
     }else if (!state[SDL_SCANCODE_A] && this->PState[SDL_SCANCODE_A]) {
         this->physicsTimeline->pause();
         this->start_time = -1;
@@ -92,9 +101,11 @@ void DefaultMovementPhysicsHandler::handleInput(Entity *entity){
     // If the 'W' key is pressed
     if (state[SDL_SCANCODE_W] && !this->PState[SDL_SCANCODE_W]) {
         entity->physicsHandler->physicsTimeline->resume();
-        entity->physicsHandler->updatePhysics(entity, 0, 1, 0, 1, -1);
+        // entity->physicsHandler->updatePhysics(entity, 0, 1, 0, 1, -1);
+        eventManager->raiseEvent(defaultPhysicsEventUp, 0);
     }else if (state[SDL_SCANCODE_W] && this->PState[SDL_SCANCODE_W]) {
-        entity->physicsHandler->updatePhysics(entity, 0, 1, 0, 1, -1);
+        // entity->physicsHandler->updatePhysics(entity, 0, 1, 0, 1, -1);
+        eventManager->raiseEvent(defaultPhysicsEventUp, 0);
     }else if (!state[SDL_SCANCODE_W] && this->PState[SDL_SCANCODE_W]) {
         entity->physicsHandler->physicsTimeline->pause();
         entity->physicsHandler->start_time = -1;
@@ -103,9 +114,11 @@ void DefaultMovementPhysicsHandler::handleInput(Entity *entity){
     // If the 'S' key is pressed
     if (state[SDL_SCANCODE_S] && !this->PState[SDL_SCANCODE_S]) {
         entity->physicsHandler->physicsTimeline->resume();
-        entity->physicsHandler->updatePhysics(entity, 0, 1, 0, 1, 1);
+        // entity->physicsHandler->updatePhysics(entity, 0, 1, 0, 1, 1);
+        eventManager->raiseEvent(defaultPhysicsEventDown, 0);
     }else if (state[SDL_SCANCODE_S] && this->PState[SDL_SCANCODE_S]) {
-        entity->physicsHandler->updatePhysics(entity, 0, 1, 0, 1, 1);
+        // entity->physicsHandler->updatePhysics(entity, 0, 1, 0, 1, 1);
+        eventManager->raiseEvent(defaultPhysicsEventDown, 0);
     }else if (!state[SDL_SCANCODE_S] && this->PState[SDL_SCANCODE_S]) {
         entity->physicsHandler->physicsTimeline->pause();
         entity->physicsHandler->start_time = -1;
