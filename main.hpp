@@ -74,4 +74,9 @@ class GoLeftEventHandler : public EventHandler {
         void onEvent(Event e) override;
 };
 
+class POWEventHandler : public EventHandler {
+    public:
+        void onEvent(Event e) override;
+};
+
 extern EventManager *eventManager;

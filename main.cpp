@@ -10,10 +10,15 @@ void createSideScroller(std::vector<Entity*>& E);
 void HandleGentleExit(Client *client);
 void custom_entity_renderer(const unordered_map<int, std::vector<Entity *>> &entity_map, int client_id);
 void sendCustomEntityUpdate(Client *client);
-void create_events();
+void create_events(bool isServer);
+
+Entity *createPOW();
 
 std::map<std::string, Event*> eventMap;
 vector<Entity*> E;
+
+Server *server;
+Client *client;
 
 bool moving = false;
 
@@ -57,7 +62,7 @@ void run_client_server(bool isServer) {
         E.push_back(shape7);
 
 
-        Server *server = new Server();
+        server = new Server();
         server->addEntities(E);
         server->run();
 
@@ -66,6 +71,8 @@ void run_client_server(bool isServer) {
             int64_t frame_delta = globalTimeline->getTime() - last_render_time;
             if (frame_delta < (1e9/RENDER_FPS - (2*1e6))) SDL_Delay((1e9/RENDER_FPS - frame_delta)*1e-6);
             last_render_time = globalTimeline->getTime();
+
+            // printf("SERVER %ld\n", globalTimeline->getTime());
 
             std::thread physics_thread(&PhysicsSubsystem::doPhysics, physicsSubsystem, std::ref(server->entityMap[-1]));
             std::thread animation_thread(&AnimationSubsystem::doAnimation, animationSubsystem, std::ref(server->entityMap[-1]));
@@ -86,15 +93,19 @@ void run_client_server(bool isServer) {
         }
 
     } else {
-        Client *client = new Client();
+        client = new Client();
 
         // create a spawn event
         Event *spawnEvent = eventMap["SpawnEvent"];
         spawnEvent->addParameter("init", 1);
-        eventManager->raiseEvent(spawnEvent, 0);
+        eventManager->raiseEvent(spawnEvent, 0, nullptr);
 
         createDeathZone(E);
         createSideScroller(E);
+
+        Entity *POW = createPOW();
+        // client->getEntityMap()[connectionID].push_back(POW);
+        // printf("INITIAL: %ld\n", client->getEntityMap()[connectionID].size());
 
         renderer->init("Game");
 
@@ -113,6 +124,7 @@ void run_client_server(bool isServer) {
             std::thread collision_thread(&CollisionSubsystem::doCollision, collisionSubsystem, std::ref(client->getEntityMap()[client->id]), std::ref(client->getEntityMap()));
             std::thread input_thread(&InputSubsystem::doInput, inputSubsystem, std::ref(client->getEntityMap()[client->id]));
             std::thread physics_thread(&PhysicsSubsystem::doPhysics, physicsSubsystem, std::ref(client->getEntityMap()[client->id]));
+            // TODO create thread for event handling
             
             input_thread.join();
             physics_thread.join();
@@ -130,13 +142,30 @@ void run_client_server(bool isServer) {
             }
 
             client->performHandshake(E); //just once
+            bool hasPOW = false;
+            for (long unsigned int i = 0; i < client->getEntityMap()[client->id].size(); i++) {
+
+                if (client->getEntityMap()[client->id][i]->getName().compare("POW") == 0) {
+
+                    hasPOW = true;
+
+                }
+
+            }
+            if (hasPOW == false) {
+
+                client->getEntityMap()[client->id].push_back(POW);
+
+            }
 
             // Client-server communication
             // client->sendEntityUpdate();       // Client sends its entity update to the server
             sendCustomEntityUpdate(client);
             client->receiveEntityUpdates();  // Client receives entity updates from the server
+            // printf("AFTER: %ld\n", client->getEntityMap()[connectionID].size());
             
             custom_entity_renderer(client->getEntityMap(), client->id);
+            POW->draw(app->renderer);
             renderer->presentScene(client->getEntityMap(), client->id, true);
         }
 
@@ -149,9 +178,9 @@ int main(int argc, char *argv[]){
     app->quit = false;
     app->displacement = 0;
 
-    create_events();
-
     bool isServer = (argc > 1 && std::string(argv[1]) == "server");
+    create_events(isServer);
+
     run_client_server(isServer);
      return 0;
 }
@@ -165,7 +194,7 @@ void SpawnEventHandler::onEvent(Event e) {
         spawn_points.push_back({e.getParameter("x4")->m_asInt, e.getParameter("y4")->m_asInt});
 
         // select a random spawn point
-        cout<< rand() % spawn_points.size()  <<endl;
+        // cout<< rand() % spawn_points.size()  <<endl;
         int spawn_point_index = rand() % spawn_points.size();
         int spawn_x = spawn_points[spawn_point_index].first;
         int spawn_y = spawn_points[spawn_point_index].second;
@@ -190,47 +219,59 @@ void SideScrollingEventHandler::onEvent(Event e) {
     }
 }
 
-void create_events(){
-    Event *spawnEvent = new Event("SpawnEvent");
-    spawnEvent->addParameter("x1", 100);
-    spawnEvent->addParameter("y1", SCREEN_HEIGHT-70);
-    spawnEvent->addParameter("x2", 150);
-    spawnEvent->addParameter("y2", SCREEN_HEIGHT-70);
-    spawnEvent->addParameter("x3", 200);
-    spawnEvent->addParameter("y3", SCREEN_HEIGHT-70);
-    spawnEvent->addParameter("x4", 250);
-    spawnEvent->addParameter("y4", SCREEN_HEIGHT-70);
-    eventMap["SpawnEvent"] = spawnEvent;
+void create_events(bool isServer){
 
-    Event *goRightEvent = new Event("GoRightEvent");
-    goRightEvent->addParameter("velocityX", double(10));
-    goRightEvent->addParameter("velocityY", double(0));
-    goRightEvent->addParameter("accelerationX", double(0));
-    goRightEvent->addParameter("accelerationY", double(0));
-    goRightEvent->addParameter("direction", 1);
-    eventMap["GoRightEvent"] = goRightEvent;
+    if (isServer == false) {
 
-    Event *goLeftEvent = new Event("GoLeftEvent");
-    goLeftEvent->addParameter("velocityX", double(10));
-    goLeftEvent->addParameter("velocityY", double(0));
-    goLeftEvent->addParameter("accelerationX", double(0));
-    goLeftEvent->addParameter("accelerationY", double(0));
-    goLeftEvent->addParameter("direction", -1);
-    eventMap["GoLeftEvent"] = goLeftEvent;
+        Event *spawnEvent = new Event("SpawnEvent");
+        spawnEvent->addParameter("x1", 100);
+        spawnEvent->addParameter("y1", SCREEN_HEIGHT-70);
+        spawnEvent->addParameter("x2", 150);
+        spawnEvent->addParameter("y2", SCREEN_HEIGHT-70);
+        spawnEvent->addParameter("x3", 200);
+        spawnEvent->addParameter("y3", SCREEN_HEIGHT-70);
+        spawnEvent->addParameter("x4", 250);
+        spawnEvent->addParameter("y4", SCREEN_HEIGHT-70);
+        eventMap["SpawnEvent"] = spawnEvent;
 
-    Event *jumpEvent = new Event("JumpEvent");
-    jumpEvent->addParameter("velocityX", double(0));
-    jumpEvent->addParameter("velocityY", double(40));
-    jumpEvent->addParameter("accelerationX", double(0));
-    jumpEvent->addParameter("accelerationY", double(3));
-    jumpEvent->addParameter("direction", -1);
-    eventMap["JumpEvent"] = jumpEvent;
+        Event *goRightEvent = new Event("GoRightEvent");
+        goRightEvent->addParameter("velocityX", double(10));
+        goRightEvent->addParameter("velocityY", double(0));
+        goRightEvent->addParameter("accelerationX", double(0));
+        goRightEvent->addParameter("accelerationY", double(0));
+        goRightEvent->addParameter("direction", 1);
+        eventMap["GoRightEvent"] = goRightEvent;
 
-    eventManager->registerEvent("SpawnEvent", new SpawnEventHandler());
-    eventManager->registerEvent("SideScrollingEvent", new SideScrollingEventHandler());
-    eventManager->registerEvent("GoRightEvent", new GoRightEventHandler());
-    eventManager->registerEvent("GoLeftEvent", new GoLeftEventHandler());
-    // eventManager->registerEvent("JumpEvent", new JumpEventHandler());
+        Event *goLeftEvent = new Event("GoLeftEvent");
+        goLeftEvent->addParameter("velocityX", double(10));
+        goLeftEvent->addParameter("velocityY", double(0));
+        goLeftEvent->addParameter("accelerationX", double(0));
+        goLeftEvent->addParameter("accelerationY", double(0));
+        goLeftEvent->addParameter("direction", -1);
+        eventMap["GoLeftEvent"] = goLeftEvent;
+
+        Event *jumpEvent = new Event("JumpEvent");
+        jumpEvent->addParameter("velocityX", double(0));
+        jumpEvent->addParameter("velocityY", double(40));
+        jumpEvent->addParameter("accelerationX", double(0));
+        jumpEvent->addParameter("accelerationY", double(3));
+        jumpEvent->addParameter("direction", -1);
+        eventMap["JumpEvent"] = jumpEvent;
+
+        Event *POWEvent = new Event("POWEvent");
+        POWEvent->addParameter("Exclude", int(-1));
+        POWEvent->addParameter("Factor", 1);
+        eventMap["POWEvent"] = POWEvent;
+
+        eventManager->registerEvent("SpawnEvent", new SpawnEventHandler());
+        eventManager->registerEvent("SideScrollingEvent", new SideScrollingEventHandler());
+        eventManager->registerEvent("GoRightEvent", new GoRightEventHandler());
+        eventManager->registerEvent("GoLeftEvent", new GoLeftEventHandler());
+        // eventManager->registerEvent("JumpEvent", new JumpEventHandler());
+        eventManager->registerEvent("POWEvent", new POWEventHandler());
+
+    }
+
 }
 
 void createDeathZone(std::vector<Entity*>& E) {
@@ -247,6 +288,17 @@ void createSideScroller(std::vector<Entity*>& E) {
     // shape2->renderingHandler = new DefaultRenderer();
     shape2->setName("SideScroller");
     E.push_back(shape2);
+}
+
+Entity *createPOW() {
+
+    SDL_Color shapeColor = {0, 0, 255, 255}; // Blue color
+    Entity *POW = new Entity(SCREEN_WIDTH / 2, SCREEN_HEIGHT * 2 / 3, 100, 100, shapeColor);
+    POW->setName("POW");
+    POW->renderingHandler = new DefaultRenderer();
+
+    return POW;
+
 }
 
 void createClientCharacter(int x, int y, std::vector<Entity*>& E) {
@@ -333,6 +385,43 @@ void updatePhysicsX(Entity *entity, double velocity_x, double velocity_y, double
     }else {
         entity->x += locDifference;
     }
+}
+
+void POWUpdateEntities(int excludeID, int factor) {
+
+    std::unordered_map<int, std::vector<Entity *>> map = client->getEntityMap();
+    for (pair<int, std::vector<Entity *>> p : map) {
+
+        if (p.first != excludeID) {
+
+            std::vector<Entity *> entities = p.second;
+            for (Entity *entity : entities) {
+
+                if (entity->getName().compare("Character") == 0) {
+
+                    entity->y -= factor;
+
+                }
+                    
+            }
+
+        }
+
+    }
+
+}
+
+void POWEventHandler::onEvent(Event e) {
+
+    if (e.type.compare("POWEvent") == 0) {
+
+        int excludeID = e.getParameter("Exclude")->m_asInt;
+        int factor = e.getParameter("Factor")->m_asInt;
+
+        POWUpdateEntities(excludeID, factor);
+
+    }
+
 }
 
 void GoRightEventHandler::onEvent(Event e) {
@@ -433,6 +522,7 @@ void CharacterCollisionHandler::triggerPostCollide(Entity *entity, std::unordere
         for (const auto pair : entityMap) {
             std::vector<Entity *> entities = pair.second;
             for (Entity *other : entities) {
+                // printf("%s\n", other->getName().c_str());
                 if(other->getName() == "DeathZone" && entity->checkCollision(*other)){
                     Event *spawnEvent = eventMap["SpawnEvent"];
                     spawnEvent->addParameter("Entity", entity);
@@ -446,8 +536,18 @@ void CharacterCollisionHandler::triggerPostCollide(Entity *entity, std::unordere
                     sideScrollingEvent->addParameter("Entity", entity);
                     eventManager->raiseEvent(sideScrollingEvent, 0);
                 }
+                else if (other->getName().compare("POW") == 0 && entity->checkCollision(*other)) {
+
+                    // printf("%d\n", connectionID);
+                    Event *POWEvent = eventMap["POWEvent"];
+                    POWEvent->addParameter("Exclude", client->id);
+                    POWEvent->addParameter("Factor", 100);
+                    eventManager->raiseEvent(POWEvent, 0);
+
+                }
             }
         }
+        // printf("\n");
     }
 }
 

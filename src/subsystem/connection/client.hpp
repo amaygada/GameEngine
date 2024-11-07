@@ -10,6 +10,7 @@ private:
     zmq::context_t context;
     zmq::socket_t req_rep;
     zmq::socket_t pub_sub;
+    zmq::socket_t push_event, pull_event;
     unordered_map<int, std::vector<Entity *>> entityMap;
 
 public:
@@ -25,5 +26,8 @@ public:
     void receiveEntityUpdates();
     void uponTermination();
     unordered_map<int, std::vector<Entity *>>& getEntityMap();
+
+    void pushEvent(Event* event, int time);
+    void pullEvent();
 
 };
