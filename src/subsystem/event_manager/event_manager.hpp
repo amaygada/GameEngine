@@ -2,6 +2,7 @@
 #include "event_base.hpp"
 #include <mutex>
 #include <queue>
+#include "./../connection/client.hpp"
 
 class EventManager {
 private:
@@ -25,5 +26,5 @@ public:
     EventManager(Timeline *EventManagerTimeline);
     void registerEvent(const std::string& eventType, EventHandler* handler);
     void deregisterEvent(const std::string& eventType, EventHandler* handler);
-    void raiseEvent(Event *event, int time = 0);
+    void raiseEvent(Event *event, int time = 0, Client *client);
 };

@@ -6,13 +6,18 @@ Client::Client() :
     context(1),
     req_rep(context, ZMQ_REQ),
     pub_sub(context, ZMQ_SUB),
-    push_pull(context, ZMQ_PUSH)
+    push_pull(context, ZMQ_PUSH),
+    pull_event(context, ZMQ_PULL), 
+    push_event(context, ZMQ_PUSH)
     {
         // Connect to the server for handshake (REQ-REP)
         req_rep.connect("tcp://localhost:5555");
         push_pull.connect("tcp://localhost:5556");
         pub_sub.connect("tcp://localhost:5557");
         pub_sub.set(zmq::sockopt::subscribe, ""); // Subscribe to all messages
+
+        pull_event.bind("tcp://*:5558");
+        push_event.connect("tcp://localhost:5558");
     }
 
 void Client::performHandshake(vector<Entity*>& E){
@@ -31,6 +36,19 @@ void Client::performHandshake(vector<Entity*>& E){
     reply = messageHandler.receiveMessage(req_rep);
     // populate entity map
     entityMap[id] = E;
+}
+
+void Client::pushEvent(Event* event, int time) {
+
+    std::string eventMessage = serializer.serializeEvent(event, time);
+    messageHandler.sendMessage(push_event, eventMessage);
+
+}
+
+void Client::pullEvent() {
+
+    // TODO deserialize the event and add it to the event manager
+
 }
 
 void Client::sendEntityUpdate(){

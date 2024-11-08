@@ -48,6 +48,81 @@ pair<int, string> MessageHandler::parseMessage(string message) {
     return std::make_pair(type, data);
 }
 
+std::string Serializer::serializeEvent(Event *event, int time) {
+
+    string message = "Time: " + std::to_string(time) + 
+                     "; Event type: " + event->type + 
+                     "; Parameters: ";
+    std::map<std::string, variant> parameters = event->parameters;
+    for (pair<std::string, variant> p : parameters) {
+
+        std::string type = p.first;
+        variant value = p.second;
+
+        message.append("[Parameter type: " + type + ", Value type: " + std::to_string(value.m_Type) + ", Value: ");
+
+        if (value.m_Type == value.TYPE_GAMEOBJECT) {
+
+            Entity *entity = value.m_asGameObject;
+            std::string entitySerial = serializeEntity(entity);
+
+            message.append("(" + entitySerial + ")");
+
+        }
+        else if (value.m_Type == value.TYPE_ENTITYMAP) {
+
+            message.append("{");
+
+            std::unordered_map<int, std::vector<Entity *>> entities = *(value.m_asEntityMap);
+            for (pair<int, std::vector<Entity *>> list : entities) {
+
+                int ID = list.first;
+                std::vector<Entity *> E = list.second;
+                message.append(std::to_string(ID) + ", ");
+                for (Entity *entity : E) {
+
+                    std::string entitySerial = serializeEntity(entity);
+                    message.append("(" + entitySerial + "), ");
+
+                }
+
+            }
+
+            message.append("}");
+
+        }
+        else {
+
+            if (value.m_Type == value.TYPE_INT) {
+
+                message.append(std::to_string( (int)(value.m_asInt) ));
+
+            }
+            else if (value.m_Type == value.TYPE_FLOAT) {
+
+                message.append(std::to_string( (float)(value.m_asFloat) ));
+
+            }
+            else if (value.m_Type == value.TYPE_DOUBLE) {
+
+                message.append(std::to_string( (double)(value.m_asDouble) ));
+
+            }
+            // No support for timelines, this would be too complex to implement
+
+        }
+
+        message.append("], "); 
+
+    }
+
+    message.append("; ");
+
+    printf("%s\n", message.c_str());
+    return message;
+
+}
+
 std::string Serializer::serializeEntity(Entity *entity) {
     string request_message = "Entity data: x=" + std::to_string(entity->x) +
                                 ", y=" + std::to_string(entity->y) +

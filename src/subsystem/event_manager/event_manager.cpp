@@ -39,7 +39,9 @@ void EventManager::deregisterEvent(const std::string& eventType, EventHandler* h
     }
 }
 
-void EventManager::raiseEvent(Event* event, int time) {
+void EventManager::raiseEvent(Event* event, int time, Client *client) {
     std::lock_guard<std::mutex> lock(this->mtx);
     this->eventQueue.push({time, event});
+    
+    client->pushEvent(event, time);
 }
