@@ -64,6 +64,10 @@
         "iomanip": "cpp",
         "sstream": "cpp",
         "__hash_table": "cpp",
-        "ios": "cpp"
+        "ios": "cpp",
+        "codecvt": "cpp",
+        "forward_list": "cpp",
+        "list": "cpp",
+        "valarray": "cpp"
     }
 }

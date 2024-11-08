@@ -47,6 +47,13 @@ class XPhysicsHandler : public ModularPhysicsHandler{
         XPhysicsHandler(bool input_allowed) : ModularPhysicsHandler(input_allowed) {}
         void handleInput(Entity *entity) override;
         void updatePhysics(Entity *entity, double velocity_x, double velocity_y, double acceleration_x, double acceleration_y, int direction) override;
+
+    private:
+        int lastDPressTime = -1;
+        int lastShiftPressTime = -1;
+        bool isDPressed = false;
+        bool isShiftPressed = false;
+        const int dashBufferTime = 50;  // Buffer time in milliseconds
 };
 
 class CharacterCollisionHandler : public ModularCollisionHandler{    
@@ -72,6 +79,19 @@ class GoRightEventHandler : public EventHandler {
 class GoLeftEventHandler : public EventHandler {
     public:
         void onEvent(Event e) override;
+};
+
+class DashEventHandler : public EventHandler {
+    public:
+        void onEvent(Event e) override;
+        double getDashVelocity(Entity* entity) const;
+    private:
+        struct DashState {
+            double dashVelocityX;
+            int direction;
+            bool isActive;
+        };
+        std::unordered_map<Entity*, DashState> dashStates;
 };
 
 extern EventManager *eventManager;
