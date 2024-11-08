@@ -263,20 +263,20 @@ void create_events(bool isServer){
         POWEvent->addParameter("Factor", 1);
         eventMap["POWEvent"] = POWEvent;
 
-    Event *dashEvent = new Event("DashEvent");
-    dashEvent->addParameter("velocityX", 80.0);         // Dash speed
-    dashEvent->addParameter("velocityY", 0.0);
-    dashEvent->addParameter("accelerationX", 3.0);      // Acceleration for dash
-    dashEvent->addParameter("accelerationY", 0.0);
-    dashEvent->addParameter("direction", 1);            // Right direction
-    eventMap["DashEvent"] = dashEvent;
+        Event *dashEvent = new Event("DashEvent");
+        dashEvent->addParameter("velocityX", 80.0);         // Dash speed
+        dashEvent->addParameter("velocityY", 0.0);
+        dashEvent->addParameter("accelerationX", 3.0);      // Acceleration for dash
+        dashEvent->addParameter("accelerationY", 0.0);
+        dashEvent->addParameter("direction", 1);            // Right direction
+        eventMap["DashEvent"] = dashEvent;
 
         eventManager->registerEvent("SpawnEvent", new SpawnEventHandler());
         eventManager->registerEvent("SideScrollingEvent", new SideScrollingEventHandler());
         eventManager->registerEvent("GoRightEvent", new GoRightEventHandler());
         eventManager->registerEvent("GoLeftEvent", new GoLeftEventHandler());
         // eventManager->registerEvent("JumpEvent", new JumpEventHandler());
-    eventManager->registerEvent("DashEvent", new DashEventHandler());
+        eventManager->registerEvent("DashEvent", new DashEventHandler());
 
         eventManager->registerEvent("POWEvent", new POWEventHandler());
 
