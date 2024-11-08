@@ -268,6 +268,14 @@ void create_events(){
     jumpEvent->addParameter("direction", -1);
     eventMap["JumpEvent"] = jumpEvent;
 
+    Event *dashEvent = new Event("DashEvent");
+    dashEvent->addParameter("velocityX", 80.0);         // Dash speed
+    dashEvent->addParameter("velocityY", 0.0);
+    dashEvent->addParameter("accelerationX", 3.0);      // Acceleration for dash
+    dashEvent->addParameter("accelerationY", 0.0);
+    dashEvent->addParameter("direction", 1);            // Right direction
+    eventMap["DashEvent"] = dashEvent;
+
     Event *bulletEvent = new Event("BulletEvent");
     eventMap["BulletEvent"] = bulletEvent;
 
@@ -276,6 +284,9 @@ void create_events(){
     eventManager->registerEvent("SideScrollingEvent", new SideScrollingEventHandler());
     eventManager->registerEvent("GoRightEvent", new GoRightEventHandler());
     eventManager->registerEvent("GoLeftEvent", new GoLeftEventHandler());
+
+    eventManager->registerEvent("DashEvent", new DashEventHandler());
+
 }
 
 void createDeathZone(std::vector<Entity*>& E) {
@@ -413,14 +424,85 @@ void GoLeftEventHandler::onEvent(Event e) {
     }
 }
 
+void DashEventHandler::onEvent(Event e) {
+    std::cout<<"Control checkpoint - 3"<<std::endl;
+
+    if (e.type == "DashEvent") {
+        // if (e.getParameter("Entity") == nullptr) {
+        //     std::cerr << "Error: Entity parameter is null" << std::endl;
+        //     return;
+        // }
+
+        // if (!e.getParameter("velocityX") || !e.getParameter("velocityY") || 
+        //     !e.getParameter("accelerationX") || !e.getParameter("accelerationY") || 
+        //     !e.getParameter("direction")) {
+        //     std::cerr << "Error: One or more parameters missing in DashEvent" << std::endl;
+        //     return;
+        // }
+
+
+        Entity *entity = e.getParameter("Entity")->m_asGameObject;
+        double velocity_x = e.getParameter("velocityX")->m_asDouble;
+        double velocity_y = e.getParameter("velocityY")->m_asDouble;
+        double acceleration_x = e.getParameter("accelerationX")->m_asDouble;
+        double acceleration_y = e.getParameter("accelerationY")->m_asDouble;
+        int direction = e.getParameter("direction")->m_asInt;
+        updatePhysicsX(entity, velocity_x, velocity_y, acceleration_x, acceleration_y, direction);
+    }   
+}
+
 void XPhysicsHandler::handleInput(Entity *entity) {
     const Uint8 *state = SDL_GetKeyboardState(NULL);
+    int currentTime = SDL_GetTicks();  // Get the current time in milliseconds
 
     bool parent_paused = this->physicsTimeline->isParentPaused();
-    if(parent_paused) return;
+    if (parent_paused) return;
+
+    // Track "D" press state and timestamp
+    if (state[SDL_SCANCODE_D]) {
+        lastDPressTime = currentTime;
+        isDPressed = true;
+    } else {
+        isDPressed = false;
+    }
+
+    // Track "Shift" press state and timestamp
+    if (state[SDL_SCANCODE_LSHIFT]) {
+        lastShiftPressTime = currentTime;
+        isShiftPressed = true;
+    } else {
+        isShiftPressed = false;
+    }
+
+    // Check if both "Shift" and "D" are pressed within the buffer time
+    if (state[SDL_SCANCODE_D] && state[SDL_SCANCODE_LSHIFT]) {
+
+        // Update last press times
+        if (!this->PState[SDL_SCANCODE_D]) lastDPressTime = currentTime;
+        if (!this->PState[SDL_SCANCODE_LSHIFT]) lastShiftPressTime = currentTime;
+
+        // If "Shift + D" pressed within the dash buffer time
+        if (abs(lastDPressTime - lastShiftPressTime) <= dashBufferTime) {
+            // Trigger dash event if this is the first detection of "Shift + D" in this press cycle
+            if (!(this->PState[SDL_SCANCODE_D] && this->PState[SDL_SCANCODE_LSHIFT])) {
+                std::cout<<"Control checkpoint - 1"<<std::endl;
+                this->physicsTimeline->resume();
+                Event *dashEvent = eventMap["DashEvent"];
+                dashEvent->addParameter("Entity", entity);
+                eventManager->raiseEvent(dashEvent, 0);
+                moving = true;
+            }
+        }
+    } else if ((this->PState[SDL_SCANCODE_D] && !state[SDL_SCANCODE_D]) ||
+        (this->PState[SDL_SCANCODE_LSHIFT] && !state[SDL_SCANCODE_LSHIFT])) {
+        this->physicsTimeline->pause();
+        this->start_time = -1;
+        moving = false;
+    }
 
     // If the 'D' key is pressed
     if (state[SDL_SCANCODE_D] && !this->PState[SDL_SCANCODE_D]) {
+        std::cout<<"Control checkpoint - 2"<<std::endl;;
         this->physicsTimeline->resume();
         Event *goRightEvent = eventMap["GoRightEvent"];
         goRightEvent->addParameter("Entity", entity);
