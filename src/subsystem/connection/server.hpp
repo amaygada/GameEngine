@@ -10,6 +10,7 @@
 #include <map>
 
 #include "./../../utils/entity.hpp"
+#include "./../event_manager/event_base.hpp"
 #include "message.hpp"
 
 class Server {
@@ -41,3 +42,4 @@ public:
 };
 
 extern Timeline *globalTimeline;
+extern EventManager *eventManager;

@@ -54,6 +54,20 @@ class CharacterCollisionHandler : public ModularCollisionHandler{
         void triggerPostCollide(Entity *entity, std::unordered_map<int, std::vector<Entity *>> &entityMap) override;
 };
 
+class BulletMovementHandler : public ModularPatternHandler{
+    public:
+        Server *server;
+        BulletMovementHandler(Server *server) : ModularPatternHandler() {
+            this->server = server;
+        }
+        void moveToPath(Entity *entity, int factor) override;
+};
+
+class BulletEventHandler : public EventHandler {
+    public:
+        void onEvent(Event e) override;
+};
+
 class SpawnEventHandler : public EventHandler {
     public:
         void onEvent(Event e) override;
@@ -70,6 +84,11 @@ class GoRightEventHandler : public EventHandler {
 };
 
 class GoLeftEventHandler : public EventHandler {
+    public:
+        void onEvent(Event e) override;
+};
+
+class PlayerExitEventHandler : public EventHandler {
     public:
         void onEvent(Event e) override;
 };

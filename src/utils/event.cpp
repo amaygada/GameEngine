@@ -57,7 +57,7 @@ void DefaultCollisionEventHandler :: onEvent(Event e) {
         const variant *entityMapVariant = e.getParameter("EntityMap");
         Entity *entity = e.getParameter("Entity1")->m_asGameObject;
         Entity *entity2 = e.getParameter("Entity2")->m_asGameObject;
-        std:cout << "Collision detected between Entity " << entity2 << " and Entity " << entity << std::endl;        
+        cout << "Collision detected between Entity " << entity2 << " and Entity " << entity << std::endl;        
     }
 }
 

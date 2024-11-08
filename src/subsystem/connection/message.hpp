@@ -19,4 +19,6 @@ class Serializer {
 public:
     std::string serializeEntity(Entity *entity);
     Entity* deserializeEntity(std::string data);
+    std::string serializeEvent(Event *event, int time);
+    Event* deserializeEvent(const std::string& serializedMessage);
 };

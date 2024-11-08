@@ -70,3 +70,131 @@ Entity* Serializer::deserializeEntity(std::string data) {
     entity->setName(name);
     return entity;
 }
+
+
+std::string Serializer::serializeEvent(Event *event, int time) {
+
+    string message = "Time: " + std::to_string(time) + 
+                     "; Event type: " + event->type + 
+                     "; Parameters: ";
+    std::map<std::string, variant> parameters = event->parameters;
+    for (pair<std::string, variant> p : parameters) {
+        std::string type = p.first;
+        variant value = p.second;
+        message.append("[Parameter type: " + type + ", Value type: " + std::to_string(value.m_Type) + ", Value: ");
+        if (value.m_Type == value.TYPE_GAMEOBJECT) {
+            Entity *entity = value.m_asGameObject;
+            std::string entitySerial = serializeEntity(entity);
+            message.append("(" + entitySerial + ")");
+        } else if (value.m_Type == value.TYPE_ENTITYMAP) {
+            message.append("{");
+            std::unordered_map<int, std::vector<Entity *>> entities = *(value.m_asEntityMap);
+            for (pair<int, std::vector<Entity *>> list : entities) {
+                int ID = list.first;
+                std::vector<Entity *> E = list.second;
+                message.append(std::to_string(ID) + ", ");
+                for (Entity *entity : E) {
+                    std::string entitySerial = serializeEntity(entity);
+                    message.append("(" + entitySerial + "), ");
+                }
+            }
+            message.append("}");
+        } else {
+            if (value.m_Type == value.TYPE_INT) {
+                message.append(std::to_string( (int)(value.m_asInt) ));
+            }
+            else if (value.m_Type == value.TYPE_FLOAT) {
+                message.append(std::to_string( (float)(value.m_asFloat) ));
+            }
+            else if (value.m_Type == value.TYPE_DOUBLE) {
+                message.append(std::to_string( (double)(value.m_asDouble) ));
+            }
+        }
+        message.append("], "); 
+    }
+    message.append("; ");
+    return message;
+}
+
+// Helper function for parsing the game object (assuming details on game object format)
+Entity* parseGameObject(const std::string& valueData) {
+    // Parse and recreate the Entity (stubbed here)
+    return new Entity();
+}
+
+Event* Serializer::deserializeEvent(const std::string& serializedMessage) {
+    std::istringstream stream(serializedMessage);
+    std::string segment;
+    
+    int time;
+    std::string eventType;
+    std::map<std::string, variant> parameters;
+
+    // Parse time
+    if (std::getline(stream, segment, ';')) {
+        size_t pos = segment.find("Time: ");
+        if (pos != std::string::npos) {
+            try {
+                time = std::stoi(segment.substr(pos + 6));
+            } catch (...) {
+                std::cerr << "Error parsing time" << std::endl;
+                return nullptr;
+            }
+        }
+    }
+
+    // Parse event type
+    if (std::getline(stream, segment, ';')) {
+        size_t pos = segment.find("Event type: ");
+        if (pos != std::string::npos) {
+            eventType = segment.substr(pos + 12);
+        }
+    }
+
+    // Parse parameters
+    if (std::getline(stream, segment, ';')) {
+        size_t pos = 0;
+        while ((pos = segment.find("[Parameter type: ")) != std::string::npos) {
+            size_t endPos = segment.find("], ", pos);
+            if (endPos == std::string::npos) break;
+
+            std::string paramSegment = segment.substr(pos + 17, endPos - (pos + 17));
+            size_t typePos = paramSegment.find(", Value type: ");
+            if (typePos == std::string::npos) break;
+
+            std::string paramName = paramSegment.substr(0, typePos);
+            std::string valueSegment = paramSegment.substr(typePos + 14);
+
+            int valueType;
+            size_t valueTypeEnd = valueSegment.find_first_of(", ");
+            if (valueTypeEnd == std::string::npos) break;
+
+            try {
+                valueType = std::stoi(valueSegment.substr(0, valueTypeEnd));
+            } catch (...) {
+                std::cerr << "Error parsing value type" << std::endl;
+                return nullptr;
+            }
+
+            size_t valueStart = valueSegment.find(", Value: ") + 9;
+            if (valueStart == std::string::npos) break;
+
+            std::string valueData = valueSegment.substr(valueStart);
+            if (valueType == variant::TYPE_INT) {
+                parameters[paramName] = variant(std::stoi(valueData));
+            } else if (valueType == variant::TYPE_FLOAT) {
+                parameters[paramName] = variant(std::stof(valueData));
+            } else if (valueType == variant::TYPE_DOUBLE) {
+                parameters[paramName] = variant(std::stod(valueData));
+            } else if (valueType == variant::TYPE_GAMEOBJECT) {
+                parameters[paramName] = variant(parseGameObject(valueData));
+            }
+
+            segment.erase(0, endPos + 3);
+        }
+    }
+
+    Event* event = new Event(eventType);
+    event->parameters = parameters;
+    return event;
+}

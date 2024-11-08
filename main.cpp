@@ -14,13 +14,16 @@ void create_events();
 
 std::map<std::string, Event*> eventMap;
 vector<Entity*> E;
-
 bool moving = false;
+
+Server *server;
+Client *client;
 
 void run_client_server(bool isServer) {
     // a list of entities controlled by the process using it
 
     if(isServer){
+        server = new Server();
         SDL_Color shapeColor3 = {110, 110, 110, 255};
         Entity *shape3 = new Entity( 400, SCREEN_HEIGHT-200, 200, 50, shapeColor3);
         shape3->setName("Platform");
@@ -36,15 +39,6 @@ void run_client_server(bool isServer) {
         shape5->setName("Platform");
         E.push_back(shape5);
 
-        SDL_Color shapeColor6 = {200, 80, 80, 255};
-        Entity *shape6 = new Entity( 1800, SCREEN_HEIGHT-30, 40, 40, shapeColor6);
-        std::vector<SDL_Rect> shape6Path = {};
-        shape6Path.push_back({100,   SCREEN_HEIGHT-30, 1, 1});
-        shape6Path.push_back({1800,   SCREEN_HEIGHT-30, 1, 1});
-        shape6->patternHandler = new DefaultPatternHandler(shape6Path);
-        shape6->setName("bullet");
-        E.push_back(shape6);
-
         SDL_Color shapeColor7 = {80, 80, 10, 255};
         Entity *shape7 = new Entity( 1700, 30, 80, 80, shapeColor7);
         std::vector<SDL_Rect> shape7Path = {};
@@ -56,8 +50,17 @@ void run_client_server(bool isServer) {
         shape7->setName("sun");
         E.push_back(shape7);
 
+        SDL_Color shapeColor6 = {200, 80, 80, 255};
+        Entity *shape6 = new Entity( 1900, SCREEN_HEIGHT-30, 40, 40, shapeColor6);
+        std::vector<SDL_Rect> shape6Path = {};
+        shape6Path.push_back({100,   SCREEN_HEIGHT-30, 1, 1});
+        shape6Path.push_back({1800,   SCREEN_HEIGHT-30, 1, 1});
+        shape6->patternHandler = new BulletMovementHandler(server);
+        shape6->setName("bullet");
+        E.push_back(shape6);
 
-        Server *server = new Server();
+        eventManager->registerEvent("PlayerExitEvent", new PlayerExitEventHandler());
+
         server->addEntities(E);
         server->run();
 
@@ -74,6 +77,7 @@ void run_client_server(bool isServer) {
             animation_thread.join();
 
             while (!eventManager->eventQueue.empty() && eventManager->eventQueue.top().first <= eventManager->timeline->getTime()) {
+                // cout<<eventManager->eventQueue.top().second->type<<endl;
                 std::pair<int, Event*> eventPair = eventManager->eventQueue.top();
                 eventManager->eventQueue.pop();
                 Event *event = eventPair.second;
@@ -86,7 +90,7 @@ void run_client_server(bool isServer) {
         }
 
     } else {
-        Client *client = new Client();
+        client = new Client();
 
         // create a spawn event
         Event *spawnEvent = eventMap["SpawnEvent"];
@@ -154,6 +158,44 @@ int main(int argc, char *argv[]){
     bool isServer = (argc > 1 && std::string(argv[1]) == "server");
     run_client_server(isServer);
      return 0;
+}
+
+void BulletMovementHandler::moveToPath(Entity *entity, int factor) {
+    if (this->patternHandlerTimeline->isParentPaused()) return;
+
+    int64_t currentTime = patternHandlerTimeline->getTime();
+
+    if (this->start_time == -1) {
+        this->start_time = currentTime;
+    }
+
+    int timeDiff = int(currentTime - this->start_time);
+    this->start_time = currentTime;
+
+    entity->x = entity->x - factor;
+
+    if(entity->x < 300){
+        // kill the entity
+        // create an event to create a new entity that is added to the server list.
+        E.pop_back();
+        delete entity;
+        eventManager->raiseEvent(eventMap["BulletEvent"], 2);
+    }
+    
+}
+
+void BulletEventHandler::onEvent(Event e) {
+    if(e.type == "BulletEvent"){
+        // Server *server = e.getParameter("server")->m_asServerObject;
+        SDL_Color shapeColor6 = {200, 80, 80, 255};
+        Entity *shape6 = new Entity( 1900, SCREEN_HEIGHT-30, 40, 40, shapeColor6);
+        std::vector<SDL_Rect> shape6Path = {};
+        shape6Path.push_back({100,   SCREEN_HEIGHT-30, 1, 1});
+        shape6Path.push_back({1800,   SCREEN_HEIGHT-30, 1, 1});
+        shape6->patternHandler = new BulletMovementHandler(server);
+        shape6->setName("bullet");
+        E.push_back(shape6);
+    }
 }
 
 void SpawnEventHandler::onEvent(Event e) {
@@ -226,11 +268,14 @@ void create_events(){
     jumpEvent->addParameter("direction", -1);
     eventMap["JumpEvent"] = jumpEvent;
 
+    Event *bulletEvent = new Event("BulletEvent");
+    eventMap["BulletEvent"] = bulletEvent;
+
+    eventManager->registerEvent("BulletEvent", new BulletEventHandler());
     eventManager->registerEvent("SpawnEvent", new SpawnEventHandler());
     eventManager->registerEvent("SideScrollingEvent", new SideScrollingEventHandler());
     eventManager->registerEvent("GoRightEvent", new GoRightEventHandler());
     eventManager->registerEvent("GoLeftEvent", new GoLeftEventHandler());
-    // eventManager->registerEvent("JumpEvent", new JumpEventHandler());
 }
 
 void createDeathZone(std::vector<Entity*>& E) {
@@ -332,6 +377,15 @@ void updatePhysicsX(Entity *entity, double velocity_x, double velocity_y, double
         entity->x = 0;
     }else {
         entity->x += locDifference;
+    }
+}
+
+void PlayerExitEventHandler::onEvent(Event e) {
+    if(e.type == "PlayerExitEvent"){
+        int client_id = e.getParameter("Client Id")->m_asInt;
+        // cout<<"Player "<<client_id<<" exited"<<endl;
+        auto it = server->entityMap.find(client_id);
+        server->entityMap.erase(it);
     }
 }
 
@@ -453,7 +507,15 @@ void CharacterCollisionHandler::triggerPostCollide(Entity *entity, std::unordere
 
 void HandleGentleExit(Client *client){
     if(app->quit){
-        client->uponTermination();
+
+        Event *sendServerEvent = new Event("PlayerExitEvent");
+        sendServerEvent->addParameter("Client Id", client->id);
+
+        string msg = client->serializer.serializeEvent(sendServerEvent, eventManager->timeline->getTime()+2);
+        string message = client->messageHandler.createMessage(0, msg);
+        client->messageHandler.sendMessage(client->push_pull, message);
+        
+        // client->uponTermination();
         SDL_Quit();
         exit(0);
     }

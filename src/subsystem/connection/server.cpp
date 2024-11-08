@@ -81,10 +81,12 @@ void Server::handleRequest(string message){
     string data = msg.second;
 
      if (type == 0) {
-        int client_id;
-        sscanf(data.c_str(), "ClientID:%d", &client_id);
-        auto it = entityMap.find(client_id);
-        entityMap.erase(it);
+        Event *e = serializer.deserializeEvent(data);
+        eventManager->raiseEvent(e, 0);   
+        // int client_id;
+        // sscanf(data.c_str(), "ClientID:%d", &client_id);
+        // auto it = entityMap.find(client_id);
+        // entityMap.erase(it);
     }
 
     // HANDSHAKE REQUEST
