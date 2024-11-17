@@ -8,6 +8,7 @@ Event *defaultPhysicsEventRight = new Event("DefaultPhysicsEvent");
 Event *defaultPhysicsEventLeft = new Event("DefaultPhysicsEvent");
 Event *defaultPhysicsEventUp = new Event("DefaultPhysicsEvent");
 Event *defaultPhysicsEventDown = new Event("DefaultPhysicsEvent");
+Event *recordEvent = new Event("RecordEvent");
 
 void addParametersEvent(){
     defaultPhysicsEventRight->addParameter("velocityX", double(1));
@@ -106,5 +107,26 @@ void DefaultPhysicsEventHandler :: onEvent(Event e) {
         double acceleration_y = e.getParameter("accelerationY")->m_asDouble;
         int direction = e.getParameter("direction")->m_asInt;
         updatePhysics(entity, velocity_x, velocity_y, acceleration_x, acceleration_y, direction);
+    }
+}
+
+void clearFile(const std::string &filename) {
+    std::ofstream file(filename, std::ios::out); // Open in output mode
+    if (file.is_open()) {
+        file.close(); // Closing immediately clears the file
+    } else {
+        std::cerr << "Failed to open the file: " << filename << std::endl;
+    }
+}
+
+void RecordEventHandler :: onEvent(Event e) {
+    if(e.type == "RecordEvent"){
+        app->record = !app->record;
+        if(app->record){
+            clearFile("record.txt");
+        }else{
+            moving = false;
+            app->replay = true;
+        }
     }
 }

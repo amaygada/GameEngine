@@ -69,3 +69,8 @@ void Client::receiveEntityUpdates(){
 unordered_map<int, std::vector<Entity *>>& Client::getEntityMap() {
     return entityMap;
 }
+
+// Setter for entity_map
+void Client::setEntityMap(unordered_map<int, std::vector<Entity *>> entityMap) {
+    this->entityMap = entityMap;
+}

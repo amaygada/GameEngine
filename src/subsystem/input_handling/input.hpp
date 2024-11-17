@@ -34,5 +34,6 @@ public:
 extern Event *quitGameEvent;
 extern Event *changeTicEvent;
 extern Event *gamePauseEvent;
+extern Event *recordEvent;
 extern EventHandler *quitGameEventHandler;
 extern EventManager *eventManager;

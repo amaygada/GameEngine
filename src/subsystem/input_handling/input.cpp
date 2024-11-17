@@ -53,6 +53,14 @@ void InputSubsystem::doInput(vector<Entity*>& E) {
         eventManager->raiseEvent(changeTicEvent, 0);
     }
 
+    // Record
+    if (state[SDL_SCANCODE_R] && !this->PState[SDL_SCANCODE_R]) {
+        eventManager->raiseEvent(recordEvent, 0);
+    }else if (state[SDL_SCANCODE_R] && this->PState[SDL_SCANCODE_R]) {
+    }else if (!state[SDL_SCANCODE_R] && this->PState[SDL_SCANCODE_R]) {
+    }
+
+
     for (int i = 0; i < 512; i++) {
         this->PState[i] = state[i];
     }

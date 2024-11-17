@@ -8,14 +8,7 @@
 
 # Client Server
 - To start the server run './main server'
-- To start a client run './main client'
-
-Note that main.cpp allows only 3 clients right now (since we don't randomize a new client position and select from an existing list)
-
-# P2P
-- add peers by running './main pp'
-
-Again only 3 peers will be able to run due to the above mentioned reason.
+- To start a client run './main'
 
 # Options
 
@@ -33,3 +26,8 @@ Again only 3 peers will be able to run due to the above mentioned reason.
 
 ### To change game or subsystem frequencies 
 - edit 'defs.hpp'
+
+### To move the character 
+- (D->right , A->Left)
+- W -> Jump
+- (Shift + D) -> Dash to right

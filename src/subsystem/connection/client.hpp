@@ -25,5 +25,6 @@ public:
     void receiveEntityUpdates();
     void uponTermination();
     unordered_map<int, std::vector<Entity *>>& getEntityMap();
+    void setEntityMap(unordered_map<int, std::vector<Entity *>> entityMap);
 
 };

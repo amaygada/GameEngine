@@ -7,8 +7,13 @@ void Renderer::init(string windowName="Engine") {
     eventManager->registerEvent("GamePauseEvent", new GamePauseEventHandler());
     eventManager->registerEvent("DefaultCollisionEvent", new DefaultCollisionEventHandler());
     eventManager->registerEvent("DefaultPhysicsEvent", new DefaultPhysicsEventHandler());
+    eventManager->registerEvent("RecordEvent", new RecordEventHandler());
 
     addParametersEvent();
+
+    app->quit = false;
+    app->replay = false;
+    app->record = false;
 
     int rendererFlags, windowFlags;
     rendererFlags = SDL_RENDERER_ACCELERATED;
@@ -47,11 +52,95 @@ void Renderer::prepareScene() {
     SDL_RenderClear(app->renderer);
 }
 
+void writeEntityMapToFile(const std::unordered_map<int, std::vector<Entity *>> &entity_map, const std::string &filename, int client_id) {
+    Serializer render_serializer;
+    std::ofstream file(filename, std::ios::app); // Open in append mode
+    if (!file.is_open()) {
+        std::cerr << "Failed to open the file: " << filename << std::endl;
+        return;
+    }
+    static int iteration = 1; 
+    file << "Entity Map Iteration: " << iteration++ << "\n";
+    for (const auto &pair : entity_map) {
+        file << "Key: " << pair.first << "\n";
+        for (Entity *entity : pair.second) {
+            if(pair.first == client_id){
+                if(entity->renderingHandler != nullptr){
+                    file << "  " << render_serializer.serializeEntity(entity) << "\n";
+                }
+            }else file << "  " << render_serializer.serializeEntity(entity) << "\n";
+            
+        }
+    }
+    file << "-----------------------------\n";
+    file.close();
+}
+
+std::vector<std::unordered_map<int, std::vector<Entity *>>> parseEntityMaps(const std::string &filename) {
+    Serializer render_serializer;
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        throw std::runtime_error("Failed to open the file: " + filename);
+    }
+
+    std::vector<std::unordered_map<int, std::vector<Entity *>>> entityMaps;
+    std::unordered_map<int, std::vector<Entity *>> currentMap;
+    int currentKey = -1;
+
+    std::string line;
+    while (std::getline(file, line)) {
+        if (line.rfind("Entity Map Iteration:", 0) == 0) {
+            // Save the current map and start a new one
+            if (!currentMap.empty()) {
+                entityMaps.push_back(currentMap);
+                currentMap.clear();
+            }
+        } else if (line.rfind("Key:", 0) == 0) {
+            // Parse key
+            currentKey = std::stoi(line.substr(5));
+        } else if (!line.empty() && line[0] == ' ') {
+            // Parse serialized entity
+            Entity *entity = render_serializer.deserializeEntity(line.substr(2));
+            currentMap[currentKey].push_back(entity);
+        }
+    }
+    // Save the last map
+    if (!currentMap.empty()) {
+        entityMaps.push_back(currentMap);
+    }
+    file.close();
+    return entityMaps;
+}
+
 // Function to present the scene
 // attach timer here
 void Renderer::presentScene(const unordered_map<int, std::vector<Entity *>> &entity_map, int client_id, bool use_custom_renderer) {
     // Draw the entities from the entity_map
-    if(use_custom_renderer){
+
+    // Record entities
+    if(app->record){
+        writeEntityMapToFile(entity_map, "record.txt", client_id);
+    }
+
+    if(app->replay){
+        // render the recorded events.
+        std::vector<std::unordered_map<int, std::vector<Entity *>>> em = parseEntityMaps("record.txt");
+        if(app->replayIndex < em.size()){
+            for (const auto pair : em[app->replayIndex]) {
+                std::vector<Entity *> entities = pair.second;
+                for (Entity *entity : entities) {
+                    entity->draw(app->renderer);
+                }
+            }
+            app->replayIndex++;
+        }else{
+            app->replay = false;
+            app->replayIndex = 0;
+        }
+
+    }
+
+    if(use_custom_renderer || app->replay){
         SDL_RenderPresent(app->renderer);
         return;
     }
@@ -60,7 +149,9 @@ void Renderer::presentScene(const unordered_map<int, std::vector<Entity *>> &ent
         std::vector<Entity *> entities = pair.second;
         for (Entity *entity : entities) {
             if(pair.first == client_id){
-                if(entity->renderingHandler != nullptr) entity->renderingHandler->renderEntity(entity);
+                if(entity->renderingHandler != nullptr){
+                    entity->renderingHandler->renderEntity(entity);
+                }
             }
             else entity->draw(app->renderer);
         }

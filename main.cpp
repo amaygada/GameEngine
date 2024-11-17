@@ -8,7 +8,7 @@ void createClientCharacter(int x, int y, std::vector<Entity*>& E);
 void createDeathZone(std::vector<Entity*>& E);
 void createSideScroller(std::vector<Entity*>& E);
 void HandleGentleExit(Client *client);
-void custom_entity_renderer(const unordered_map<int, std::vector<Entity *>> &entity_map, int client_id);
+void custom_entity_renderer(unordered_map<int, std::vector<Entity *>> &entity_map, int client_id);
 void sendCustomEntityUpdate(Client *client);
 void create_events();
 
@@ -140,7 +140,9 @@ void run_client_server(bool isServer) {
             sendCustomEntityUpdate(client);
             client->receiveEntityUpdates();  // Client receives entity updates from the server
             
-            custom_entity_renderer(client->getEntityMap(), client->id);
+            if(app->replay == false){
+                custom_entity_renderer(client->getEntityMap(), client->id);
+            }
             renderer->presentScene(client->getEntityMap(), client->id, true);
         }
 
@@ -425,22 +427,7 @@ void GoLeftEventHandler::onEvent(Event e) {
 }
 
 void DashEventHandler::onEvent(Event e) {
-    std::cout<<"Control checkpoint - 3"<<std::endl;
-
     if (e.type == "DashEvent") {
-        // if (e.getParameter("Entity") == nullptr) {
-        //     std::cerr << "Error: Entity parameter is null" << std::endl;
-        //     return;
-        // }
-
-        // if (!e.getParameter("velocityX") || !e.getParameter("velocityY") || 
-        //     !e.getParameter("accelerationX") || !e.getParameter("accelerationY") || 
-        //     !e.getParameter("direction")) {
-        //     std::cerr << "Error: One or more parameters missing in DashEvent" << std::endl;
-        //     return;
-        // }
-
-
         Entity *entity = e.getParameter("Entity")->m_asGameObject;
         double velocity_x = e.getParameter("velocityX")->m_asDouble;
         double velocity_y = e.getParameter("velocityY")->m_asDouble;
@@ -485,7 +472,6 @@ void XPhysicsHandler::handleInput(Entity *entity) {
         if (abs(lastDPressTime - lastShiftPressTime) <= dashBufferTime) {
             // Trigger dash event if this is the first detection of "Shift + D" in this press cycle
             if (!(this->PState[SDL_SCANCODE_D] && this->PState[SDL_SCANCODE_LSHIFT])) {
-                std::cout<<"Control checkpoint - 1"<<std::endl;
                 this->physicsTimeline->resume();
                 Event *dashEvent = eventMap["DashEvent"];
                 dashEvent->addParameter("Entity", entity);
@@ -502,7 +488,6 @@ void XPhysicsHandler::handleInput(Entity *entity) {
 
     // If the 'D' key is pressed
     if (state[SDL_SCANCODE_D] && !this->PState[SDL_SCANCODE_D]) {
-        std::cout<<"Control checkpoint - 2"<<std::endl;;
         this->physicsTimeline->resume();
         Event *goRightEvent = eventMap["GoRightEvent"];
         goRightEvent->addParameter("Entity", entity);
@@ -540,7 +525,6 @@ void XPhysicsHandler::handleInput(Entity *entity) {
 }
 
 void XPhysicsHandler::updatePhysics(Entity *entity, double velocity_x, double velocity_y, double acceleration_x, double acceleration_y, int direction) {
-    // if timer is paused, resume it
     if (this->physicsTimeline->isParentPaused()) return;
 
     if (this->physicsTimeline->isPaused()) return;
@@ -603,8 +587,9 @@ void HandleGentleExit(Client *client){
     }
 }
 
-void custom_entity_renderer(const unordered_map<int, std::vector<Entity *>> &entity_map, int client_id) {
+void custom_entity_renderer(unordered_map<int, std::vector<Entity *>> &entity_map, int client_id) {
     vector<pair<Entity,Entity>> platforms;
+    std::vector<Entity *> server_entities;
 
     for (const auto pair : entity_map) {
         std::vector<Entity *> entities = pair.second;
@@ -613,24 +598,28 @@ void custom_entity_renderer(const unordered_map<int, std::vector<Entity *>> &ent
                 if(e->name != "Platform") continue;
                 Entity *e1 = new Entity( e->x, e->y, e->w, e->h, e->color);
                 Entity *e2 = new Entity( e->x + SCREEN_WIDTH , e->y, e->w, e->h, e->color);
+                e1->name = "Platform";
+                e2->name = "Platform";
                 platforms.push_back({*e1, *e2});
+                // server_entities.push_back(e1);
+                // server_entities.push_back(e2);
             }
         }
 
         // update_platforms();
-        
         for (Entity *entity : entities) {
             if(pair.first == client_id){
                 if(entity->renderingHandler != nullptr) entity->renderingHandler->renderEntity(entity);
             }else if(pair.first == -1){
                 if(entity->name != "Platform") {
                     entity->draw(app->renderer);
+                    server_entities.push_back(entity);
                 }else{
                     // render platforms
                     for(auto platform: platforms){
                         platform.first.x -= app->displacement%SCREEN_WIDTH;
-                        platform.first.draw(app->renderer);
                         platform.second.x -= app->displacement%SCREEN_WIDTH;
+                        platform.first.draw(app->renderer);
                         platform.second.draw(app->renderer);
                     }
                 }
@@ -643,6 +632,25 @@ void custom_entity_renderer(const unordered_map<int, std::vector<Entity *>> &ent
             else entity->draw(app->renderer);
         }
     }
+
+    // add platforms to the server entities
+    for(auto platform: platforms){
+        // create a copy of entity and add it to the server entities
+
+        Entity *e1 = new Entity( platform.first.x - app->displacement%SCREEN_WIDTH, platform.first.y, platform.first.w, platform.first.h, platform.first.color);
+        Entity *e2 = new Entity( platform.second.x - app->displacement%SCREEN_WIDTH, platform.second.y, platform.second.w, platform.second.h, platform.second.color);
+        e1->name = "Platform";
+        e2->name = "Platform";
+
+        server_entities.push_back(e1);
+        server_entities.push_back(e2);
+    }    
+
+    // cout<<server_entities.size()<<endl;
+
+    entity_map[-1] = server_entities;
+    client->setEntityMap(entity_map);
+
 }
 
 void sendCustomEntityUpdate(Client *client){

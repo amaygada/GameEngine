@@ -5,11 +5,13 @@
 #include "./../../utils/timer.hpp"
 #include "./../../subsystem/event_manager/event_base.hpp"
 #include "./../../utils/event.hpp"
+#include "./../../subsystem/connection/message.hpp"
 
 #include <SDL2/SDL.h>
 #include <iostream>
 #include <vector>
 #include <unordered_map>
+#include <fstream>
 
 using namespace std;
 

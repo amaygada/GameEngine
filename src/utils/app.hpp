@@ -16,6 +16,9 @@ typedef struct {
     SDL_Window *window;
     SDL_Renderer *renderer;
     bool quit;
+    bool replay;
+    bool record;
+    int replayIndex;
     int displacement;
 } App;
 
