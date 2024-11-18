@@ -43,6 +43,7 @@ void Server::handleReqRep(){
         if(req_rep.recv(request, zmq::recv_flags::none)){
             std::string message = std::string(static_cast<char*>(request.data()), request.size());
             handleRequest(message); 
+            handleCustomRequest(message);
         }
     }
 }
@@ -53,6 +54,7 @@ void Server::handlePushPull(){
         if(push_pull.recv(request, zmq::recv_flags::none)){
             std::string message = std::string(static_cast<char*>(request.data()), request.size());
             handleRequest(message);
+            handleCustomRequest(message);
         }
     }
 }
@@ -74,6 +76,13 @@ void Server::run(){
     pub_sub_thread.detach();
 }
 
+std::unordered_map<int, std::vector<Entity *>> Server::getEntityMap(){
+    return entityMap;
+}
+
+void Server::setEntityMap(std::unordered_map<int, std::vector<Entity *>> entityMap){
+    this->entityMap = entityMap;
+}
 
 void Server::handleRequest(string message){
     auto msg = messageHandler.parseMessage(message);

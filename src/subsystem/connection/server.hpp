@@ -19,26 +19,27 @@ private:
     zmq::socket_t req_rep;
     zmq::socket_t pub_sub;
     zmq::socket_t push_pull;
-    std::mutex mutex;
     int id_counter = 0;
-    Serializer serializer;
-    MessageHandler messageHandler;
-
-    Timeline *broadcastTimeline;
     int64_t broadcast_start_time = -1;
 
 public:
     std::unordered_map<int, std::vector<Entity *>> entityMap;
+    Serializer serializer;
+    MessageHandler messageHandler;
+    std::mutex mutex;
+    Timeline *broadcastTimeline;
 
     Server();
     void run();
     void handleRequest(string message);
+    virtual void handleCustomRequest(string message){};
     void handleReqRep();
     void handlePushPull();
     void handlePubSub();
     void broadcastEntityUpdates();
     void addEntities(std::vector<Entity*> E);
     std::unordered_map<int, std::vector<Entity *>> getEntityMap();
+    void setEntityMap(std::unordered_map<int, std::vector<Entity *>> entityMap);
 };
 
 extern Timeline *globalTimeline;

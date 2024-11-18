@@ -64,6 +64,8 @@
         "iomanip": "cpp",
         "sstream": "cpp",
         "__hash_table": "cpp",
-        "ios": "cpp"
+        "ios": "cpp",
+        "codecvt": "cpp",
+        "fstream": "cpp"
     }
 }
