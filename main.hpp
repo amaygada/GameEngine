@@ -11,6 +11,7 @@
 #include "src/subsystem/connection/server.hpp"
 #include "src/subsystem/connection/client.hpp"
 #include "src/subsystem/event_manager/event_base.hpp"
+#include "src/utils/text.hpp"
 
 #include <memory>
 #include <vector>
@@ -52,7 +53,23 @@ class EnemyBulletMovementHandler : public ModularPatternHandler{
         void moveToPath(Entity *entity, int factor) override;
 };
 
-// custom server class
+// COLLISION HANDLERS
+class CharacterCollisionHandler : public ModularCollisionHandler{    
+    public:
+        void triggerPostCollide(Entity *entity, std::unordered_map<int, std::vector<Entity *>> &entityMap) override;
+};
+
+class EnemyCollisionHandler : public ModularCollisionHandler{    
+    public:
+        void triggerPostCollide(Entity *entity, std::unordered_map<int, std::vector<Entity *>> &entityMap) override;
+};
+
+class CharacterBulletCollisionHandler : public ModularCollisionHandler{    
+    public:
+        void triggerPostCollide(Entity *entity, std::unordered_map<int, std::vector<Entity *>> &entityMap) override;
+};
+
+// CUSTOM SERVER CLASS
 class CustomServer : public Server {
     public:
         void handleCustomRequest(string message) override;

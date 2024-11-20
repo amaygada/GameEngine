@@ -125,13 +125,41 @@ void Server::handleRequest(string message){
     }
 
     // Entity update request
-    else if( type == 3 ){
+    // else if( type == 3 ){
+    //     int client_id;
+    //     char entity_data[256];
+    //     sscanf(data.c_str(), "ClientID:%d Entity:%255[^\n]", &client_id, &entity_data);
+    //     Entity *entity = serializer.deserializeEntity(entity_data);
+    //     mutex.lock();
+    //     entityMap[client_id][0] = entity;
+    //     mutex.unlock();
+    // }
+
+    else if (type == 3) {
         int client_id;
-        char entity_data[256];
-        sscanf(data.c_str(), "ClientID:%d Entity:%255[^\n]", &client_id, &entity_data);
-        Entity *entity = serializer.deserializeEntity(entity_data);
+        char entities_data[1024]; // Adjust buffer size based on expected message size
+        sscanf(data.c_str(), "ClientID:%d Entities:%1023[^\n]", &client_id, &entities_data);
+
+        // Split the entities data by the delimiter `|`
+        std::string entities_str(entities_data);
+        std::vector<std::string> entity_strings;
+        size_t pos = 0;
+        std::string token;
+        while ((pos = entities_str.find('|')) != std::string::npos) {
+            token = entities_str.substr(0, pos);
+            entity_strings.push_back(token);
+            entities_str.erase(0, pos + 1);
+        }
+        entity_strings.push_back(entities_str); // Add the last entity
+
+        // Deserialize entities and update the map
+        std::vector<Entity*> deserialized_entities;
+        for (const auto& entity_str : entity_strings) {
+            deserialized_entities.push_back(serializer.deserializeEntity(entity_str));
+        }
+
         mutex.lock();
-        entityMap[client_id][0] = entity;
+        entityMap[client_id] = deserialized_entities; // Replace 0 index with the full vector
         mutex.unlock();
     }
 }

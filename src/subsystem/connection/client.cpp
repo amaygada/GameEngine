@@ -33,10 +33,24 @@ void Client::performHandshake(vector<Entity*>& E){
     entityMap[id] = E;
 }
 
-void Client::sendEntityUpdate(){
-    string entity_str = serializer.serializeEntity(entity);
-    string id_str = std::to_string(id);
-    string message = messageHandler.createMessage(3, "ClientID:"+id_str+" Entity:"+entity_str);
+// void Client::sendEntityUpdate(){
+//     string entity_str = serializer.serializeEntity(entity);
+//     string id_str = std::to_string(id);
+//     string message = messageHandler.createMessage(3, "ClientID:"+id_str+" Entity:"+entity_str);
+//     messageHandler.sendMessage(push_pull, message);
+// }
+
+void Client::sendEntityUpdate() {
+    std::string entities_str;
+    std::vector<Entity *> entities = entityMap[id];
+    for (size_t i = 0; i < entities.size(); ++i) {
+        entities_str += serializer.serializeEntity(entities[i]);
+        if (i != entities.size() - 1) {
+            entities_str += "|"; // Add delimiter between serialized entities
+        }
+    }
+    std::string id_str = std::to_string(id);
+    std::string message = messageHandler.createMessage(3, "ClientID:" + id_str + " Entities:" + entities_str);
     messageHandler.sendMessage(push_pull, message);
 }
 

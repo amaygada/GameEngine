@@ -4,6 +4,9 @@ std::map<std::string, Event*> eventMap;
 vector<Entity*> E;
 bool moving = false;
 
+int character_bullet_id = 0;
+int enemy_bullet_id = 0;
+
 CustomServer *server;
 Client *client;
 
@@ -14,6 +17,15 @@ void createEnemyCharacter(int x, int y, std::vector<Entity*>& E, int id);
 void createBulletEnemy(int x, int y, std::vector<Entity*>& E, int id);
 void createBulletCharacter(int x, int y, std::vector<Entity*>& E);
 void HandleGentleExit(Client *client);
+void checkGameOver();
+vector<string> split(string s, char delimiter);
+
+int health = 100;
+int score = 0;
+
+Text *healthText = nullptr;
+Text *scoreText = nullptr;
+Text *gameOverText = nullptr;
 
 void run_client_server(bool isServer) {
     if(isServer){
@@ -21,14 +33,14 @@ void run_client_server(bool isServer) {
 
         createEnemyCharacter(100, 10, E, 0);
         createEnemyCharacter(500, 10, E, 1);
-        createEnemyCharacter(900, 10, E, 2);
-        createEnemyCharacter(1300, 10, E, 3);
-        createEnemyCharacter(1700, 10, E, 4);
+        // createEnemyCharacter(900, 10, E, 2);
+        // createEnemyCharacter(1300, 10, E, 3);
+        // createEnemyCharacter(1700, 10, E, 4);
 
-        createEnemyCharacter(300, 100, E, 5);
-        createEnemyCharacter(700, 100, E, 6);
-        createEnemyCharacter(1100, 100, E, 7);
-        createEnemyCharacter(1500, 100, E, 8);
+        // createEnemyCharacter(300, 100, E, 5);
+        // createEnemyCharacter(700, 100, E, 6);
+        // createEnemyCharacter(1100, 100, E, 7);
+        // createEnemyCharacter(1500, 100, E, 8);
         // createEnemyCharacter(1900, 100, E, 9);
         
         server->addEntities(E);
@@ -47,6 +59,7 @@ void run_client_server(bool isServer) {
             animation_thread.join();
 
             while (!eventManager->eventQueue.empty() && eventManager->eventQueue.top().first <= eventManager->timeline->getTime()) {
+                if(gameTimeline->isPaused()) continue;
                 std::pair<int, Event*> eventPair = eventManager->eventQueue.top();
                 eventManager->eventQueue.pop();
                 Event *event = eventPair.second;
@@ -75,7 +88,13 @@ void run_client_server(bool isServer) {
             if (frame_delta < (1e9/RENDER_FPS - (2*1e6))) SDL_Delay((1e9/RENDER_FPS - frame_delta)*1e-6);
             last_render_time = globalTimeline->getTime();
 
+            healthText->setText("Health: " + std::to_string(health));
+            scoreText->setText("Score: " + std::to_string(score));
+
             renderer->prepareScene();
+            healthText->renderText();
+            scoreText->renderText();
+            gameOverText->renderText();
             HandleGentleExit(client);
 
             std::thread collision_thread(&CollisionSubsystem::doCollision, collisionSubsystem, std::ref(client->getEntityMap()[client->id]), std::ref(client->getEntityMap()));
@@ -106,6 +125,8 @@ void run_client_server(bool isServer) {
             client->receiveEntityUpdates();  // Client receives entity updates from the server
             
             renderer->presentScene(client->getEntityMap(), client->id, false);
+            checkGameOver();
+            
         }
 
         renderer->cleanup();
@@ -118,6 +139,10 @@ int main(int argc, char *argv[]){
     app->displacement = 0;
 
     create_events();
+
+    healthText = new Text("Health: 100", 100, 110, 120, 50, {0, 0, 0, 255});
+    scoreText = new Text("Score: 0", 100, 150, 120, 50, {0, 0, 0, 255});
+    gameOverText = new Text("", 500, 500, 240, 100, {0, 0, 0, 255});
 
     bool isServer = (argc > 1 && std::string(argv[1]) == "server");
     run_client_server(isServer);
@@ -143,7 +168,7 @@ void createClientCharacter(int x, int y, std::vector<Entity*>& E) {
     shape->setName("Character");
     shape->renderingHandler = new DefaultRenderer();
     shape->physicsHandler = new XPhysicsHandler(true);
-    // shape->collisionHandler = new CharacterCollisionHandler();
+    shape->collisionHandler = new CharacterCollisionHandler();
     E.push_back(shape);  // Push the dynamically allocated entity
 }
 
@@ -153,7 +178,9 @@ void createBulletCharacter(int x, int y, std::vector<Entity*>& E) {
     std::vector<SDL_Rect> shapePath = {};
     shape->patternHandler = new BulletMovementHandler();
     shape->renderingHandler = new DefaultRenderer();
-    shape->setName("bullet-character");
+    shape->collisionHandler = new CharacterBulletCollisionHandler();
+    character_bullet_id = (character_bullet_id + 1) % 1000;
+    shape->setName("bullet-character$"+std::to_string(character_bullet_id));
     unordered_map<int, std::vector<Entity *>> em = client->getEntityMap();
     em[client->id].push_back(shape);
     client->setEntityMap(em);
@@ -161,12 +188,13 @@ void createBulletCharacter(int x, int y, std::vector<Entity*>& E) {
 
 void createBulletEnemy(int x, int y, std::vector<Entity*>& E, int id) {
     SDL_Color shapeColor = {200, 80, 80, 255};
-    Entity *shape = new Entity( x, y, 10, 20, shapeColor);
+    Entity *shape = new Entity( x, y, 15, 23, shapeColor);
     EnemyBulletMovementHandler *eb = new EnemyBulletMovementHandler();
     eb->enemyId = id;
     shape->patternHandler = eb;
     shape->renderingHandler = new DefaultRenderer();
-    shape->setName("bullet-enemy");
+    enemy_bullet_id = (enemy_bullet_id + 1) % 1000;
+    shape->setName("bullet-enemy$"+std::to_string(enemy_bullet_id));
     server->entityMap[-1].push_back(shape);
 
 }
@@ -187,8 +215,8 @@ void createEnemyCharacter(int x, int y, std::vector<Entity*>& E, int id) {
 
     Event *shootBulletEnemy = new Event("ShootBulletEnemy");
     eventMap["enemy-" + idStr] = shootBulletEnemy;
-    eventMap["enemy-" + idStr]->addParameter("x", x+50);
-    eventMap["enemy-" + idStr]->addParameter("y", y-50);
+    eventMap["enemy-" + idStr]->addParameter("x", x+100);
+    eventMap["enemy-" + idStr]->addParameter("y", y+50);
     eventMap["enemy-" + idStr]->addParameter("id", id);
 
     // randomly choose between 5 and 15
@@ -240,9 +268,9 @@ void EnemyBulletMovementHandler::moveToPath(Entity *entity, int factor) {
     int timeDiff = int(currentTime - this->start_time);
     this->start_time = currentTime;
 
-    entity->y = entity->y + factor;
+    entity->y = entity->y + factor*2;
 
-    if(entity->y > SCREEN_HEIGHT - 300){
+    if(entity->y > SCREEN_HEIGHT - 10){
         // kill the entity. Find the entity in E and remove it from there. After that delete the object too
         int randomTime = rand() % 10 + 5;
         eventManager->raiseEvent(eventMap["enemy-" + std::to_string(enemyId)], eventManager->timeline->getTime() + randomTime);
@@ -257,8 +285,6 @@ void EnemyBulletMovementHandler::moveToPath(Entity *entity, int factor) {
             }
         }
     }
-
-    
 }
 //////////////////////////////////////// PHYSICS HANDLERS ////////////////////////////////////////
 
@@ -338,6 +364,92 @@ void updatePhysicsX(Entity *entity, double velocity_x, double velocity_y, double
     }
 }
 
+//////////////////////////////////////// COLLISION HANDLERS ////////////////////////////////////////
+
+void CharacterCollisionHandler::triggerPostCollide(Entity *entity, std::unordered_map<int, std::vector<Entity *>> &entityMap) {
+    if(entity->getName() == "Character"){
+        for (const auto pair : entityMap) {
+            std::vector<Entity *> entities = pair.second;
+            for (Entity *other : entities) {
+                // split other->getName() by $
+                vector<string> tokens = split(other->getName(), '$');
+                if(tokens.size() == 2){
+                    if(tokens[0] == "bullet-enemy" && entity->checkCollision(*other)){
+                        // send a message to the server to kill the bullet and reduce the health of the character
+                        string msg = tokens[1];
+                        string message = client->messageHandler.createMessage(5, msg);
+                        client->messageHandler.sendMessage(client->push_pull, message);
+                        health -= 20;
+
+                        if (health <= 0) {
+                            gameTimeline->pause();
+                            gameOverText->setText("Game Over");
+                            // send message to server to pause timeline
+                            msg = "pause";
+                            message = client->messageHandler.createMessage(6, msg);
+                            client->messageHandler.sendMessage(client->push_pull, message);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void CharacterBulletCollisionHandler::triggerPostCollide(Entity *entity, std::unordered_map<int, std::vector<Entity *>> &entityMap) {
+    vector<string> tokens = split(entity->getName(), '$');
+    if(tokens[0] == "bullet-character"){
+        for (const auto pair : entityMap) {
+            std::vector<Entity *> entities = pair.second;
+            for (Entity *other : entities) {
+                tokens = split(other->getName(), '-');
+                if(tokens.size() == 2){
+                    if(tokens[0] == "Enemy" && entity->checkCollision(*other)){
+                        // kill the bullet
+                        for(auto e : entityMap[client->id]){
+                            if(e == entity){
+                                vector<Entity*> temp = entityMap[client->id];
+                                temp.erase(std::remove(temp.begin(), temp.end(), e), temp.end());
+                                entityMap[client->id] = temp;
+                                delete e;
+                                break;
+                            }
+                        }
+
+                        // send message to server to kill the enemy
+                        string msg = tokens[1];
+                        string message = client->messageHandler.createMessage(7, msg);
+                        client->messageHandler.sendMessage(client->push_pull, message);
+
+                        score += 10;
+                    }
+                }
+
+                tokens = split(other->getName(), '$');
+                if(tokens.size() == 2){
+                    if(tokens[0] == "bullet-enemy" && entity->checkCollision(*other)){
+                        // kill the bullet
+                        for(auto e : entityMap[client->id]){
+                            if(e == entity){
+                                vector<Entity*> temp = entityMap[client->id];
+                                temp.erase(std::remove(temp.begin(), temp.end(), e), temp.end());
+                                entityMap[client->id] = temp;
+                                delete e;
+                                break;
+                            }
+                        }
+
+                        // send message to server to kill the bullet
+                        string msg = tokens[1];
+                        string message = client->messageHandler.createMessage(5, msg);
+                        client->messageHandler.sendMessage(client->push_pull, message);
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 //////////////////////////////////////// EVENTS ////////////////////////////////////////
 void create_events(){
@@ -398,10 +510,39 @@ void ShootBulletCharacterEventHandler::onEvent(Event e) {
 
 void ShootBulletEnemyEventHandler::onEvent(Event e) {
     if(e.type == "ShootBulletEnemy"){
-        int x = e.getParameter("x")->m_asInt;
-        int y = e.getParameter("y")->m_asInt;
-        int id = e.getParameter("id")->m_asInt;
-        createBulletEnemy(x, y, E, id);
+        // check if enemy is still alive
+        for(auto entity : server->entityMap[-1]){
+            vector<string> tokens = split(entity->getName(), '-');
+            if(tokens.size() == 2){
+                if(tokens[0] == "Enemy" && stoi(tokens[1]) == e.getParameter("id")->m_asInt){
+                    int x = e.getParameter("x")->m_asInt;
+                    int y = e.getParameter("y")->m_asInt;
+                    createBulletEnemy(x, y, E, e.getParameter("id")->m_asInt);
+                    break;
+                }
+            }
+        }
+
+        // int x = e.getParameter("x")->m_asInt;
+        // int y = e.getParameter("y")->m_asInt;
+        // int id = e.getParameter("id")->m_asInt;
+        // createBulletEnemy(x, y, E, id);
+    }
+}
+
+
+///////////////////////////////////////////////////////// UTILS /////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void checkGameOver() {
+    // check if all enemies are dead
+    unordered_map<int, std::vector<Entity *>> em = client->getEntityMap();
+    if (em[-1].size() == 0) {
+        gameTimeline->pause();
+        gameOverText->setText("Y O U  W I N");
+        // send message to server to pause timeline
+        string msg = "pause";
+        string message = client->messageHandler.createMessage(6, msg);
+        client->messageHandler.sendMessage(client->push_pull, message);
     }
 }
 
@@ -422,4 +563,49 @@ void CustomServer::handleCustomRequest(string message) {
     auto msg = messageHandler.parseMessage(message);
     int type = msg.first;
     string data = msg.second;
+
+    if (type == 5) {
+        // kill the bullet and reduce the health of the character
+        int id = stoi(data);
+        for(auto e : entityMap[-1]){
+            vector<string> tokens = split(e->getName(), '$');
+            if(tokens.size() == 2){
+                if(tokens[0] == "bullet-enemy" && stoi(tokens[1]) == id){
+                    vector<Entity*> temp = entityMap[-1];
+                    temp.erase(std::remove(temp.begin(), temp.end(), e), temp.end());
+                    entityMap[-1] = temp;
+                    delete e;
+                    break;
+                }
+            }
+        }
+    }else if (type == 6) {
+        // pause the timeline
+        gameTimeline->pause();
+    }else if (type == 7) {
+        // kill the enemy
+        int id = stoi(data);
+        for(auto e : entityMap[-1]){
+            vector<string> tokens = split(e->getName(), '-');
+            if(tokens.size() == 2){
+                if(tokens[0] == "Enemy" && stoi(tokens[1]) == id){
+                    vector<Entity*> temp = entityMap[-1];
+                    temp.erase(std::remove(temp.begin(), temp.end(), e), temp.end());
+                    entityMap[-1] = temp;
+                    delete e;
+                    break;
+                }
+            }
+        }
+    }
+}
+
+vector<string> split(string s, char delimiter) {
+    vector<string> tokens;
+    stringstream check1(s);
+    string intermediate;
+    while(getline(check1, intermediate, delimiter)) {
+        tokens.push_back(intermediate);
+    }
+    return tokens;
 }

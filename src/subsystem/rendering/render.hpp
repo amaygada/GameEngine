@@ -8,6 +8,7 @@
 #include "./../../subsystem/connection/message.hpp"
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 #include <iostream>
 #include <vector>
 #include <unordered_map>
