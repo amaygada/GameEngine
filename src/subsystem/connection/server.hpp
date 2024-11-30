@@ -16,7 +16,6 @@
 class Server {
 private:
     zmq::context_t context;
-    zmq::socket_t req_rep;
     zmq::socket_t pub_sub;
     zmq::socket_t push_pull;
     int id_counter = 0;
@@ -28,6 +27,7 @@ public:
     MessageHandler messageHandler;
     std::mutex mutex;
     Timeline *broadcastTimeline;
+    zmq::socket_t req_rep;
 
     Server();
     void run();

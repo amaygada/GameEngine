@@ -33,38 +33,32 @@ extern EventManager *eventManager;
 
 int main(int argc, char *argv[]);
 
-// PHYSICS HANDLERS
-class XPhysicsHandler : public ModularPhysicsHandler{
+// INPUT HANDLERS
+class CharacterInputHandler : public ModularInputHandler{
     public:
-        XPhysicsHandler(bool input_allowed) : ModularPhysicsHandler(input_allowed) {}
+        CharacterInputHandler() : ModularInputHandler() {}
         void handleInput(Entity *entity) override;
-        void updatePhysics(Entity *entity, double velocity_x, double velocity_y, double acceleration_x, double acceleration_y, int direction) {};
+};
+
+// PHYSICS HANDLERS
+class ProjectilePhysicsHandler : public ModularPhysicsHandler{
+    public:
+        double velocity_y = 0;
+        double velocity_x = 0;
+        ProjectilePhysicsHandler(bool input_allowed) : ModularPhysicsHandler(input_allowed) {}
+        void handleInput(Entity *entity) override;
+        void updatePhysics(Entity *entity, double velocity_x, double velocity_y, double acceleration_x, double acceleration_y, int direction);
 };
 
 // ANIMATION HANDLERS
-class BulletMovementHandler : public ModularPatternHandler{
+class BananaAnimationHandler : public ModularPatternHandler{
     public:
         void moveToPath(Entity *entity, int factor) override;
 };
 
-class EnemyBulletMovementHandler : public ModularPatternHandler{
-    public:
-        int enemyId;
-        void moveToPath(Entity *entity, int factor) override;
-};
 
 // COLLISION HANDLERS
-class CharacterCollisionHandler : public ModularCollisionHandler{    
-    public:
-        void triggerPostCollide(Entity *entity, std::unordered_map<int, std::vector<Entity *>> &entityMap) override;
-};
-
-class EnemyCollisionHandler : public ModularCollisionHandler{    
-    public:
-        void triggerPostCollide(Entity *entity, std::unordered_map<int, std::vector<Entity *>> &entityMap) override;
-};
-
-class CharacterBulletCollisionHandler : public ModularCollisionHandler{    
+class BananaCollisionHandler : public ModularCollisionHandler{    
     public:
         void triggerPostCollide(Entity *entity, std::unordered_map<int, std::vector<Entity *>> &entityMap) override;
 };
@@ -77,22 +71,7 @@ class CustomServer : public Server {
 
 
 // EVENT HANDLERS
-class GoRightEventHandler : public EventHandler {
-    public:
-        void onEvent(Event e) override;
-};
-
-class GoLeftEventHandler : public EventHandler {
-    public:
-        void onEvent(Event e) override;
-};
-
-class ShootBulletCharacterEventHandler : public EventHandler {
-    public:
-        void onEvent(Event e) override;
-};
-
-class ShootBulletEnemyEventHandler : public EventHandler {
+class DeleteBananaEventHandler : public EventHandler {
     public:
         void onEvent(Event e) override;
 };

@@ -60,10 +60,16 @@ void InputSubsystem::doInput(vector<Entity*>& E) {
     }else if (!state[SDL_SCANCODE_R] && this->PState[SDL_SCANCODE_R]) {
     }
 
+    for (Entity *entity : E) {
+        if(entity->inputHandler != nullptr){
+            entity->inputHandler->handleInput(entity);
+        }
+    }
 
     for (int i = 0; i < 512; i++) {
         this->PState[i] = state[i];
     }
+
 
     SDL_Event event;
     while (SDL_PollEvent(&event))

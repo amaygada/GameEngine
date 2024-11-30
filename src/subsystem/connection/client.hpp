@@ -8,7 +8,6 @@
 class Client {
 private:
     zmq::context_t context;
-    zmq::socket_t req_rep;
     zmq::socket_t pub_sub;
     unordered_map<int, std::vector<Entity *>> entityMap;
 
@@ -18,6 +17,7 @@ public:
     Serializer serializer;
     MessageHandler messageHandler;
     zmq::socket_t push_pull;
+    zmq::socket_t req_rep;
     
     Client();
     void performHandshake(vector<Entity*>& E);

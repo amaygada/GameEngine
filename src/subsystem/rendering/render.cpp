@@ -61,24 +61,8 @@ void Renderer::prepareScene() {
     if(!app->font){
         cout<<"Font is null"<<endl;
     }
-    // SDL_Color textColor = {0, 0, 0, 255}; // White color
-    // SDL_Surface* textSurface = TTF_RenderText_Solid(app->font, "Hello, SDL2!", textColor);
-    // SDL_Texture* textTexture = SDL_CreateTextureFromSurface(app->renderer, textSurface);
-
-
-
-    // SDL_FreeSurface(textSurface); // Free the surface once we have the texture
-    // SDL_Rect textRect;
-    // textRect.x = 100;
-    // textRect.y = 100;
-    // textRect.w = 100;
-    // textRect.h = 100;
-
-    // SDL_DestroyTexture(textTexture);
-    // TTF_CloseFont(font);
     SDL_RenderClear(app->renderer);
 
-    // SDL_RenderCopy(app->renderer, textTexture, NULL, &textRect);
 }
 
 void writeEntityMapToFile(const std::unordered_map<int, std::vector<Entity *>> &entity_map, const std::string &filename, int client_id) {
