@@ -127,6 +127,7 @@ void RecordEventHandler :: onEvent(Event e) {
         }else{
             moving = false;
             app->replay = true;
+            gameTimeline->pause();
         }
     }
 }

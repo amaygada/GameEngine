@@ -149,8 +149,8 @@ void Renderer::presentScene(const unordered_map<int, std::vector<Entity *>> &ent
         }else{
             app->replay = false;
             app->replayIndex = 0;
+            gameTimeline->resume();
         }
-
     }
 
     if(use_custom_renderer || app->replay){
