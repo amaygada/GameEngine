@@ -19,7 +19,7 @@ public:
 
     InputSubsystem(Timeline *inputSubsystemTimeline);
     void doInput(vector<Entity*>& E);
-    virtual void customInput(vector<Entity*>& E){};
+    virtual void customInput(vector<Entity*>& E);
 };
 
 // Abstract class for modular input handling
