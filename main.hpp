@@ -91,3 +91,13 @@ class ShootBulletEnemyEventHandler : public EventHandler {
     public:
         void onEvent(Event e) override;
 };
+
+void InputSubsystem::customInput(vector<Entity*>& E){};
+
+class EnemyMovementHandler : public ModularPatternHandler {
+public:
+    int direction = 1; // 1 for right, -1 for left
+    int stepDown = 10; // Pixels to move down when changing direction
+
+    void moveToPath(Entity* entity, int factor) override;
+};

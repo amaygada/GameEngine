@@ -20,7 +20,7 @@ void HandleGentleExit(Client *client);
 void checkGameOver();
 vector<string> split(string s, char delimiter);
 
-int health = 100;
+int health = 50;
 int score = 0;
 
 Text *healthText = nullptr;
@@ -31,16 +31,20 @@ void run_client_server(bool isServer) {
     if(isServer){
         server = new CustomServer();
 
-        createEnemyCharacter(100, 10, E, 0);
-        createEnemyCharacter(500, 10, E, 1);
-        createEnemyCharacter(900, 10, E, 2);
-        createEnemyCharacter(1300, 10, E, 3);
-        createEnemyCharacter(1700, 10, E, 4);
+        // Cluster 1
+        createEnemyCharacter(100, 50, E, 0);
+        createEnemyCharacter(150, 100, E, 1);
+        createEnemyCharacter(200, 150, E, 2);
 
-        createEnemyCharacter(300, 100, E, 5);
-        createEnemyCharacter(700, 100, E, 6);
-        createEnemyCharacter(1100, 100, E, 7);
-        createEnemyCharacter(1500, 100, E, 8);
+        // Cluster 2
+        createEnemyCharacter(700, 300, E, 3);
+        createEnemyCharacter(750, 350, E, 4);
+        createEnemyCharacter(800, 400, E, 5);
+
+        // Cluster 3
+        createEnemyCharacter(1500, 500, E, 6);
+        createEnemyCharacter(1550, 550, E, 7);
+        createEnemyCharacter(1600, 600, E, 8);
         
         server->addEntities(E);
         server->run();
@@ -88,7 +92,7 @@ void run_client_server(bool isServer) {
             last_render_time = globalTimeline->getTime();
 
             healthText->setText("Health: " + std::to_string(health));
-            scoreText->setText("Score: " + std::to_string(score));
+            scoreText->setText("Kills: " + std::to_string(score));
 
             renderer->prepareScene();
             healthText->renderText();
@@ -139,13 +143,13 @@ int main(int argc, char *argv[]){
 
     create_events();
 
-    healthText = new Text("Health: 100", 100, 110, 120, 50, {0, 0, 0, 255});
-    scoreText = new Text("Score: 0", 100, 150, 120, 50, {0, 0, 0, 255});
-    gameOverText = new Text("", 500, 500, 240, 100, {0, 0, 0, 255});
+    healthText = new Text("Health: 50", (int)SCREEN_WIDTH - (SCREEN_WIDTH/2), 110, 120, 50, {0, 0, 0, 200});
+    scoreText = new Text("Score: 0", (int)SCREEN_WIDTH - (SCREEN_WIDTH/2), 150, 120, 50, {0, 0, 0, 200});
+    gameOverText = new Text("", (int)SCREEN_WIDTH - (SCREEN_WIDTH/2), (int)SCREEN_HEIGHT - (SCREEN_HEIGHT/2), 240, 100, {0, 0, 0, 200});
 
     bool isServer = (argc > 1 && std::string(argv[1]) == "server");
     run_client_server(isServer);
-     return 0;
+    return 0;
 }
 
 //////////////////////////////////////// ENTITIES ////////////////////////////////////////
@@ -158,22 +162,32 @@ void createDeathZone(std::vector<Entity*>& E) {
 }
 
 void createClientCharacter(int x, int y, std::vector<Entity*>& E) {
-    // select a random color
-    uint8_t r = rand() % 256;
-    uint8_t g = rand() % 256;
-    uint8_t b = 255;
+    // Define a set of shape sizes and types for variety
+    int shapeWidth = rand() % 20 + 80; // Random width between 80 and 100
+    int shapeHeight = rand() % 20 + 80; // Random height between 80 and 100
+
+    // Generate vibrant colors
+    uint8_t r = rand() % 128 + 128; // Bright red
+    uint8_t g = rand() % 128 + 128; // Bright green
+    uint8_t b = rand() % 128 + 128; // Bright blue
     SDL_Color shapeColor = {r, g, b, 255};
-    Entity* shape = new Entity(x, y, 100, 100, shapeColor);
+
+    // Create the shape with dynamic size and type
+    Entity* shape = new Entity(x, y, shapeWidth, shapeHeight, shapeColor);
+
+    // Set properties
     shape->setName("Character");
     shape->renderingHandler = new DefaultRenderer();
     shape->physicsHandler = new XPhysicsHandler(true);
     shape->collisionHandler = new CharacterCollisionHandler();
-    E.push_back(shape);  // Push the dynamically allocated entity
+
+    // Add the shape to the entity vector
+    E.push_back(shape);
 }
 
 void createBulletCharacter(int x, int y, std::vector<Entity*>& E) {
     SDL_Color shapeColor = {80, 80, 200, 255};
-    Entity *shape = new Entity( x, y, 10, 20, shapeColor);
+    Entity *shape = new Entity( x, y, 30, 40, shapeColor);
     std::vector<SDL_Rect> shapePath = {};
     shape->patternHandler = new BulletMovementHandler();
     shape->renderingHandler = new DefaultRenderer();
@@ -187,7 +201,7 @@ void createBulletCharacter(int x, int y, std::vector<Entity*>& E) {
 
 void createBulletEnemy(int x, int y, std::vector<Entity*>& E, int id) {
     SDL_Color shapeColor = {200, 80, 80, 255};
-    Entity *shape = new Entity( x, y, 15, 23, shapeColor);
+    Entity *shape = new Entity( x, y, 40, 50, shapeColor);
     EnemyBulletMovementHandler *eb = new EnemyBulletMovementHandler();
     eb->enemyId = id;
     shape->patternHandler = eb;
@@ -203,11 +217,15 @@ void createEnemyCharacter(int x, int y, std::vector<Entity*>& E, int id) {
     uint8_t r = 200;
     uint8_t g = rand() % 80;
     uint8_t b = rand() % 80;
-    SDL_Color shapeColor = {r, g, b, 255};
+    SDL_Color shapeColor = {r, g, b, 200};
     Entity* shape = new Entity(x, y, 200, 50, shapeColor);
     std::string idStr = std::to_string(id);
     shape->setName("Enemy-"+idStr);
     shape->renderingHandler = new DefaultRenderer();
+    // Assign the enemy movement handler
+    EnemyMovementHandler* movementHandler = new EnemyMovementHandler();
+    movementHandler->direction = (id % 2 == 0) ? 1 : -1; // Alternate directions for variation
+    shape->patternHandler = movementHandler;
     E.push_back(shape);
 
     // raise an event to shoot a bullet at random time
@@ -251,9 +269,40 @@ void BulletMovementHandler::moveToPath(Entity *entity, int factor) {
                 break;
             }
         }
-    }
-    
+    }    
 }
+
+void EnemyMovementHandler::moveToPath(Entity* entity, int factor) {
+    if (this->patternHandlerTimeline->isParentPaused()) return;
+
+    int64_t currentTime = patternHandlerTimeline->getTime();
+
+    if (this->start_time == -1) {
+        this->start_time = currentTime;
+    }
+
+    int timeDiff = int(currentTime - this->start_time);
+    this->start_time = currentTime;
+
+    // Horizontal movement
+    entity->x += factor * direction;
+
+    // Screen bounds check
+    if (entity->x + entity->w >= SCREEN_WIDTH || entity->x <= 0) {
+        // Reverse direction and move down
+        direction *= -1;
+        entity->y += stepDown;
+
+        // If moving down passes a threshold (e.g., game over zone), handle it
+        if (entity->y + entity->h >= SCREEN_HEIGHT) {
+            // Handle game over or enemy reaching the bottom
+            std::cout << "Enemy reached the bottom!" << std::endl;
+            gameTimeline->pause();
+            return;
+        }
+    }
+}
+
 
 void EnemyBulletMovementHandler::moveToPath(Entity *entity, int factor) {
     if (this->patternHandlerTimeline->isParentPaused()) return;
@@ -379,7 +428,7 @@ void CharacterCollisionHandler::triggerPostCollide(Entity *entity, std::unordere
                         string msg = temp[0];
                         string message = client->messageHandler.createMessage(5, msg);
                         client->messageHandler.sendMessage(client->push_pull, message);
-                        health -= 20;
+                        health -= 10;
 
                         if (health <= 0) {
                             gameTimeline->pause();
@@ -421,7 +470,7 @@ void CharacterBulletCollisionHandler::triggerPostCollide(Entity *entity, std::un
                         string message = client->messageHandler.createMessage(7, msg);
                         client->messageHandler.sendMessage(client->push_pull, message);
 
-                        score += 10;
+                        score += 1;
                     }
                 }
 
@@ -454,7 +503,7 @@ void CharacterBulletCollisionHandler::triggerPostCollide(Entity *entity, std::un
 //////////////////////////////////////// EVENTS ////////////////////////////////////////
 void create_events(){
     Event *goRightEvent = new Event("GoRightEvent");
-    goRightEvent->addParameter("velocityX", double(10));
+    goRightEvent->addParameter("velocityX", double(25));
     goRightEvent->addParameter("velocityY", double(0));
     goRightEvent->addParameter("accelerationX", double(0));
     goRightEvent->addParameter("accelerationY", double(0));
@@ -462,7 +511,7 @@ void create_events(){
     eventMap["GoRightEvent"] = goRightEvent;
 
     Event *goLeftEvent = new Event("GoLeftEvent");
-    goLeftEvent->addParameter("velocityX", double(10));
+    goLeftEvent->addParameter("velocityX", double(25));
     goLeftEvent->addParameter("velocityY", double(0));
     goLeftEvent->addParameter("accelerationX", double(0));
     goLeftEvent->addParameter("accelerationY", double(0));
@@ -538,7 +587,7 @@ void checkGameOver() {
     unordered_map<int, std::vector<Entity *>> em = client->getEntityMap();
     if (em[-1].size() == 0) {
         gameTimeline->pause();
-        gameOverText->setText("Y O U  W I N");
+        gameOverText->setText("Congratulations, You win");
         // send message to server to pause timeline
         string msg = "pause";
         string message = client->messageHandler.createMessage(6, msg);
