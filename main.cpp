@@ -12,12 +12,13 @@ Client *client;
 
 void create_events();
 void createDeathZone(std::vector<Entity*>& E);
-void createClientCharacter(int x, int y, std::vector<Entity*>& E);
-void createEnemyCharacter(int x, int y, std::vector<Entity*>& E, int id);
-void createBulletEnemy(int x, int y, std::vector<Entity*>& E, int id);
+void createClientCharacter(std::vector<Entity*>& E);
+void createEnemyCharacter(std::vector<Entity*>& E, int &id);
+void createBulletEnemy(int x, int y, std::vector<Entity*>& E, int &id);
 void createBulletCharacter(int x, int y, std::vector<Entity*>& E);
 void HandleGentleExit(Client *client);
 void checkGameOver();
+void createBall(std::vector<Entity*>& E);
 vector<string> split(string s, char delimiter);
 
 int health = 50;
@@ -31,20 +32,10 @@ void run_client_server(bool isServer) {
     if(isServer){
         server = new CustomServer();
 
+        int temp_d = 0;
+
         // Cluster 1
-        createEnemyCharacter(100, 50, E, 0);
-        createEnemyCharacter(150, 100, E, 1);
-        createEnemyCharacter(200, 150, E, 2);
-
-        // Cluster 2
-        createEnemyCharacter(700, 300, E, 3);
-        createEnemyCharacter(750, 350, E, 4);
-        createEnemyCharacter(800, 400, E, 5);
-
-        // Cluster 3
-        createEnemyCharacter(1500, 500, E, 6);
-        createEnemyCharacter(1550, 550, E, 7);
-        createEnemyCharacter(1600, 600, E, 8);
+        createEnemyCharacter(E, temp_d);
         
         server->addEntities(E);
         server->run();
@@ -79,7 +70,8 @@ void run_client_server(bool isServer) {
 
         createDeathZone(E);
         createDeathZone(E);
-        createClientCharacter(100, SCREEN_HEIGHT-70, E);
+        createClientCharacter(E);
+        createBall(E);
 
         renderer->init("Game");
 
@@ -161,43 +153,42 @@ void createDeathZone(std::vector<Entity*>& E) {
     E.push_back(shape2);
 }
 
-void createClientCharacter(int x, int y, std::vector<Entity*>& E) {
-    // Define a set of shape sizes and types for variety
-    int shapeWidth = rand() % 20 + 80; // Random width between 80 and 100
-    int shapeHeight = rand() % 20 + 80; // Random height between 80 and 100
+void createClientCharacter(std::vector<Entity*>& E) {
+    int platformWidth = 200;
+    int platformHeight = 20;
+    // Position the platform near the bottom center of the screen
+    int x = (SCREEN_WIDTH - platformWidth) / 2;
+    int y = SCREEN_HEIGHT - 100; // Adjust this as needed
 
-    // Generate vibrant colors
-    uint8_t r = rand() % 128 + 128; // Bright red
-    uint8_t g = rand() % 128 + 128; // Bright green
-    uint8_t b = rand() % 128 + 128; // Bright blue
-    SDL_Color shapeColor = {r, g, b, 255};
+    // Choose a color for the platform
+    SDL_Color platformColor = {128, 128, 128, 255}; // A shade of gray
 
-    // Create the shape with dynamic size and type
-    Entity* shape = new Entity(x, y, shapeWidth, shapeHeight, shapeColor);
-
-    // Set properties
-    shape->setName("Character");
-    shape->renderingHandler = new DefaultRenderer();
-    shape->physicsHandler = new XPhysicsHandler(true);
-    shape->collisionHandler = new CharacterCollisionHandler();
+    // Create the platform entity
+    Entity* platform = new Entity(x, y, platformWidth, platformHeight, platformColor);
+    platform->setName("Character");
+    platform->renderingHandler = new DefaultRenderer();
+    platform->physicsHandler = new XPhysicsHandler(true);
+    platform->collisionHandler = new CharacterCollisionHandler();
 
     // Add the shape to the entity vector
-    E.push_back(shape);
-}
+    E.push_back(platform);
 
-void createBulletCharacter(int x, int y, std::vector<Entity*>& E) {
-    SDL_Color shapeColor = {80, 80, 200, 255};
-    Entity *shape = new Entity( x, y, 30, 40, shapeColor);
-    std::vector<SDL_Rect> shapePath = {};
-    shape->patternHandler = new BulletMovementHandler();
-    shape->renderingHandler = new DefaultRenderer();
-    shape->collisionHandler = new CharacterBulletCollisionHandler();
-    character_bullet_id = (character_bullet_id + 1) % 1000;
-    shape->setName("bullet-character$"+std::to_string(character_bullet_id));
     unordered_map<int, std::vector<Entity *>> em = client->getEntityMap();
-    em[client->id].push_back(shape);
+    em[client->id].push_back(platform);
     client->setEntityMap(em);
 }
+
+void createBall(std::vector<Entity*>& E) {
+    SDL_Color ballColor = {255, 255, 255, 255}; // White ball
+    Entity* ball = new Entity(SCREEN_WIDTH / 2, SCREEN_HEIGHT - 150, 40, 40, ballColor);
+    ball->setName("Ball");
+    ball->renderingHandler = new DefaultRenderer();
+    ball->patternHandler = new BallMovementHandler();
+    ball->collisionHandler = new BallCollisionHandler();
+    E.push_back(ball);
+}
+
+
 
 void createBulletEnemy(int x, int y, std::vector<Entity*>& E, int id) {
     SDL_Color shapeColor = {200, 80, 80, 255};
@@ -212,33 +203,63 @@ void createBulletEnemy(int x, int y, std::vector<Entity*>& E, int id) {
 
 }
 
-void createEnemyCharacter(int x, int y, std::vector<Entity*>& E, int id) {
-    // select a random color
-    uint8_t r = 200;
-    uint8_t g = rand() % 80;
-    uint8_t b = rand() % 80;
-    SDL_Color shapeColor = {r, g, b, 200};
-    Entity* shape = new Entity(x, y, 200, 50, shapeColor);
-    std::string idStr = std::to_string(id);
-    shape->setName("Enemy-"+idStr);
+void createEnemyCharacter(std::vector<Entity*>& E, int &id) {
+
+    // Configuration for fewer, evenly-spaced bricks
+    int rows = 3;
+    int cols = 4;
+    int brickWidth = 120;   // Larger bricks
+    int brickHeight = 30;
+    int horizontalGap = 350; // Horizontal space between bricks
+    int verticalGap = 200;   // Vertical space between rows
+
+    // Calculate total width of the entire row of bricks with gaps
+    int totalBricksWidth = (cols * brickWidth) + (horizontalGap * (cols - 1));
+    
+    // Center horizontally on the screen
+    int startX = (SCREEN_WIDTH - totalBricksWidth) / 2;
+    
+    // Vertical offset from the top of the screen
+    int startY = 30;
+
+    // Create a small grid of bricks, evenly spaced and centered
+    for (int r = 0; r < rows; r++) {
+        for (int c = 0; c < cols; c++) {
+            // Compute each brick's position
+            int x = startX + c * (brickWidth + horizontalGap);
+            int y = startY + r * (brickHeight + verticalGap);
+
+            // Randomize the brick color slightly
+            SDL_Color color = {
+                (Uint8)(rand() % 128 + 128),
+                (Uint8)(rand() % 128 + 128),
+                (Uint8)(rand() % 128 + 128),
+                255
+            };
+
+            Entity* brick = new Entity(x, y, brickWidth, brickHeight, color);
+            std::string idStr = std::to_string(id);
+            brick->setName("Enemy-"+idStr);
+            brick->renderingHandler = new DefaultRenderer();
+            brick->collisionHandler = new EnemyCollisionHandler();
+            E.push_back(brick);
+            id++;
+        }
+    }
+}
+
+void createBulletCharacter(int x, int y, std::vector<Entity*>& E) {
+    SDL_Color shapeColor = {80, 80, 200, 255};
+    Entity *shape = new Entity( x, y, 30, 40, shapeColor);
+    std::vector<SDL_Rect> shapePath = {};
+    shape->patternHandler = new BulletMovementHandler();
     shape->renderingHandler = new DefaultRenderer();
-    // Assign the enemy movement handler
-    EnemyMovementHandler* movementHandler = new EnemyMovementHandler();
-    movementHandler->direction = (id % 2 == 0) ? 1 : -1; // Alternate directions for variation
-    shape->patternHandler = movementHandler;
-    E.push_back(shape);
-
-    // raise an event to shoot a bullet at random time
-
-    Event *shootBulletEnemy = new Event("ShootBulletEnemy");
-    eventMap["enemy-" + idStr] = shootBulletEnemy;
-    eventMap["enemy-" + idStr]->addParameter("x", x+100);
-    eventMap["enemy-" + idStr]->addParameter("y", y+50);
-    eventMap["enemy-" + idStr]->addParameter("id", id);
-
-    // randomly choose between 5 and 15
-    int randomTime = rand() % 10 + 5;
-    eventManager->raiseEvent(shootBulletEnemy, eventManager->timeline->getTime() + randomTime);
+    //shape->collisionHandler = new CharacterBulletCollisionHandler();
+    character_bullet_id = (character_bullet_id + 1) % 1000;
+    shape->setName("bullet-character$"+std::to_string(character_bullet_id));
+    unordered_map<int, std::vector<Entity *>> em = client->getEntityMap();
+    em[client->id].push_back(shape);
+    client->setEntityMap(em);
 }
 
 //////////////////////////////////////// ANIMATION HANDLERS ////////////////////////////////////////
@@ -334,6 +355,40 @@ void EnemyBulletMovementHandler::moveToPath(Entity *entity, int factor) {
         }
     }
 }
+
+void BallMovementHandler::moveToPath(Entity* entity, int factor) {
+    if (this->patternHandlerTimeline->isParentPaused()) return;
+
+    int64_t currentTime = patternHandlerTimeline->getTime();
+    if (this->start_time == -1) {
+        this->start_time = currentTime;
+        // Initialize ball velocity
+        velocityX = 5;
+        velocityY = -5;
+    }
+
+    int timeDiff = int(currentTime - this->start_time);
+    this->start_time = currentTime;
+
+    // Update ball position
+    entity->x += velocityX;
+    entity->y += velocityY;
+
+    // Screen bounds collision
+    if (entity->x <= 0 || entity->x + entity->w >= SCREEN_WIDTH) {
+        velocityX = -velocityX;
+    }
+    if (entity->y <= 0) {
+        velocityY = -velocityY;
+    }
+
+    // Bottom screen collision (game over condition)
+    if (entity->y + entity->h >= SCREEN_HEIGHT) {
+        std::cout << "Ball reached the bottom! Game Over." << std::endl;
+        gameTimeline->pause();
+        return;
+    }
+}
 //////////////////////////////////////// PHYSICS HANDLERS ////////////////////////////////////////
 
 void XPhysicsHandler::handleInput(Entity *entity) {
@@ -415,29 +470,21 @@ void updatePhysicsX(Entity *entity, double velocity_x, double velocity_y, double
 //////////////////////////////////////// COLLISION HANDLERS ////////////////////////////////////////
 
 void CharacterCollisionHandler::triggerPostCollide(Entity *entity, std::unordered_map<int, std::vector<Entity *>> &entityMap) {
-    if(entity->getName() == "Character"){
+    if(entity->getName() == "Character") {
         for (const auto pair : entityMap) {
             std::vector<Entity *> entities = pair.second;
             for (Entity *other : entities) {
-                // split other->getName() by $
-                vector<string> tokens = split(other->getName(), '$');
-                if(tokens.size() == 2){
-                    if(tokens[0] == "bullet-enemy" && entity->checkCollision(*other)){
-                        // send a message to the server to kill the bullet and reduce the health of the character
-                        vector<string> temp = split(tokens[1], '#');
-                        string msg = temp[0];
-                        string message = client->messageHandler.createMessage(5, msg);
-                        client->messageHandler.sendMessage(client->push_pull, message);
-                        health -= 10;
-
-                        if (health <= 0) {
-                            gameTimeline->pause();
-                            gameOverText->setText("Game Over");
-                            // send message to server to pause timeline
-                            msg = "pause";
-                            message = client->messageHandler.createMessage(6, msg);
-                            client->messageHandler.sendMessage(client->push_pull, message);
-                        }
+                if(other->getName() == "Ball" && entity->checkCollision(*other)) {
+                    // Handle paddle-ball collision
+                    BallMovementHandler* ballHandler = dynamic_cast<BallMovementHandler*>(other->patternHandler);
+                    if (ballHandler) {
+                        // Reverse the vertical direction of the ball
+                        ballHandler->velocityY = -abs(ballHandler->velocityY);
+                        
+                        // Adjust horizontal velocity based on where the ball hit the paddle
+                        float hitPosition = (other->x + other->w/2) - (entity->x + entity->w/2);
+                        float normalizedHitPosition = hitPosition / (entity->w / 2);
+                        ballHandler->velocityX = normalizedHitPosition * 5; // Adjust the multiplier for desired effect
                     }
                 }
             }
@@ -498,6 +545,58 @@ void CharacterBulletCollisionHandler::triggerPostCollide(Entity *entity, std::un
         }
     }
 }
+
+void BallCollisionHandler::triggerPostCollide(Entity *entity, std::unordered_map<int, std::vector<Entity *>> &entityMap) {
+    if (entity->getName() == "Ball") {
+        BallMovementHandler* ballHandler = dynamic_cast<BallMovementHandler*>(entity->patternHandler);
+        if (!ballHandler) return;
+
+        for (const auto &pair : entityMap) {
+            for (Entity *other : pair.second) {
+                if (entity->checkCollision(*other)) {
+                    if (other->getName().compare(0, 5, "Enemy") == 0) {
+                        // Ball-brick collision
+                        ballHandler->velocityY = -ballHandler->velocityY;
+                        
+                        // Remove the brick
+                        vector<Entity*> &entities = entityMap[pair.first];
+                        entities.erase(std::remove(entities.begin(), entities.end(), other), entities.end());
+                        delete other;
+
+                        // Increase score (implement scoring system as needed)
+                        score += 10;
+                        return;
+                    }
+                }
+            }
+        }
+    }
+}
+
+void EnemyCollisionHandler::triggerPostCollide(Entity *entity, std::unordered_map<int, std::vector<Entity *>> &entityMap) {
+        if (entity->getName().find("Enemy-") != std::string::npos) {
+            for (const auto &pair : entityMap) {
+                for (Entity *other : pair.second) {
+                    if (other->getName() == "Ball" && entity->checkCollision(*other)) {
+                        // Brick-ball collision
+                        BallMovementHandler* ballHandler = dynamic_cast<BallMovementHandler*>(other->patternHandler);
+                        if (ballHandler) {
+                            ballHandler->velocityY = -ballHandler->velocityY;
+                        }
+
+                        // Remove the brick
+                        vector<Entity*> &entities = entityMap[pair.first];
+                        entities.erase(std::remove(entities.begin(), entities.end(), entity), entities.end());
+                        delete entity;
+
+                        // Increase score (implement scoring system as needed)
+                        // score += 10;
+                        return;
+                    }
+                }
+            }
+        }
+    }
 
 
 //////////////////////////////////////// EVENTS ////////////////////////////////////////

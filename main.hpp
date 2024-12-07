@@ -18,6 +18,7 @@
 #include <mutex>
 #include <thread>
 #include <map>
+#include <regex>
 
 extern App *app;
 extern Renderer *renderer;
@@ -64,6 +65,16 @@ class CharacterBulletCollisionHandler : public ModularCollisionHandler{
         void triggerPostCollide(Entity *entity, std::unordered_map<int, std::vector<Entity *>> &entityMap) override;
 };
 
+class EnemyCollisionHandler : public ModularCollisionHandler {
+public:
+    void triggerPostCollide(Entity* entity, std::unordered_map<int, std::vector<Entity*>>& entityMap) override;
+};
+
+class BallCollisionHandler : public ModularCollisionHandler {
+public:
+    void triggerPostCollide(Entity* entity, std::unordered_map<int, std::vector<Entity*>>& entityMap) override;
+};
+
 // CUSTOM SERVER CLASS
 class CustomServer : public Server {
     public:
@@ -99,5 +110,14 @@ public:
     int direction = 1; // 1 for right, -1 for left
     int stepDown = 10; // Pixels to move down when changing direction
 
+    void moveToPath(Entity* entity, int factor) override;
+};
+
+class BallMovementHandler : public ModularPatternHandler {
+public:
+    int velocityX;
+    int velocityY;
+
+    BallMovementHandler() : velocityX(5), velocityY(-5) {}
     void moveToPath(Entity* entity, int factor) override;
 };
