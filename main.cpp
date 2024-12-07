@@ -194,9 +194,11 @@ void createBulletEnemy(int x, int y, std::vector<Entity*>& E, int id) {
     SDL_Color shapeColor = {200, 80, 80, 255};
     Entity *shape = new Entity( x, y, 40, 50, shapeColor);
     EnemyBulletMovementHandler *eb = new EnemyBulletMovementHandler();
+    
     eb->enemyId = id;
     shape->patternHandler = eb;
     shape->renderingHandler = new DefaultRenderer();
+    //shape->collisionHandler = new EnemyCollisionHandler();
     enemy_bullet_id = (enemy_bullet_id + 1) % 1000;
     shape->setName("bullet-enemy$"+std::to_string(enemy_bullet_id)+"#"+std::to_string(id));
     server->entityMap[-1].push_back(shape);
@@ -241,7 +243,7 @@ void createEnemyCharacter(std::vector<Entity*>& E, int &id) {
             std::string idStr = std::to_string(id);
             brick->setName("Enemy-"+idStr);
             brick->renderingHandler = new DefaultRenderer();
-            brick->collisionHandler = new EnemyCollisionHandler();
+            brick->collisionHandler = new BallCollisionHandler();
             E.push_back(brick);
             id++;
         }
@@ -551,22 +553,37 @@ void BallCollisionHandler::triggerPostCollide(Entity *entity, std::unordered_map
         BallMovementHandler* ballHandler = dynamic_cast<BallMovementHandler*>(entity->patternHandler);
         if (!ballHandler) return;
 
-        for (const auto &pair : entityMap) {
-            for (Entity *other : pair.second) {
-                if (entity->checkCollision(*other)) {
-                    if (other->getName().compare(0, 5, "Enemy") == 0) {
-                        // Ball-brick collision
+        for (auto &pair : entityMap) {
+            auto &entities = pair.second;
+            for (auto it = entities.begin(); it != entities.end(); ) {
+                Entity *other = *it;
+                
+                // Check if it's an enemy (brick) and collision occurs
+                if (other->getName().compare(0, 5, "Enemy") == 0 && entity->checkCollision(*other)) {
+                    // Extract the enemy ID
+                    vector<string> tokens = split(other->getName(), '-');
+                    if (tokens.size() == 2) {
+                        int enemyId = stoi(tokens[1]);
+
+                        // Reverse ball's vertical velocity
                         ballHandler->velocityY = -ballHandler->velocityY;
                         
-                        // Remove the brick
-                        vector<Entity*> &entities = entityMap[pair.first];
-                        entities.erase(std::remove(entities.begin(), entities.end(), other), entities.end());
-                        delete other;
+                        // Remove the brick from local entities
+                        delete *it;
+                        it = entities.erase(it);
 
-                        // Increase score (implement scoring system as needed)
+                        // Send message to server to remove the enemy
+                        string message = client->messageHandler.createMessage(7, to_string(enemyId));
+                        client->messageHandler.sendMessage(client->push_pull, message);
+
+                        // Increase score
                         score += 10;
+
+                        // Exit the loop after handling the collision
                         return;
                     }
+                } else {
+                    ++it;
                 }
             }
         }
